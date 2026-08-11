@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vite/
+*.log
+
+.env
+.env.*
+!.env.example
+
+# Local/source asset pipeline
+/assets/
+pipeline-chrome-out.html
+
+pipeline-chrome-out.html
