@@ -62,6 +62,7 @@ export const RuntimeProbe: React.FC = () => {
     const start = performance.now();
     let fps = 0;
     let finished = false;
+    let refreshTimer: number | undefined;
 
     const collect = () => {
       const lines: string[] = [];
@@ -180,30 +181,35 @@ export const RuntimeProbe: React.FC = () => {
       setReport(reportText);
       const node = document.getElementById('probe-report');
       if (node) node.textContent = reportText;
-    };
-    const loop = () => {
-      if (finished) return;
-      frames++;
-      const now = performance.now();
-      if (now - start >= 4000) {
-        finished = true;
-        fps = frames / ((now - start) / 1000);
-        collect();
-        return;
-      }
+};
+      const loop = () => {
+        if (finished) return;
+        frames++;
+        const now = performance.now();
+        if (now - start >= 4000) {
+          finished = true;
+          fps = frames / ((now - start) / 1000);
+          collect();
+          return;
+        }
+        requestAnimationFrame(loop);
+      };
       requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
-    const timeout = setTimeout(() => {
-      if (!finished) {
-        finished = true;
-        fps = frames / ((performance.now() - start) / 1000);
+      const delayMs = parseInt(new URLSearchParams(window.location.search).get('probeDelay') ?? '4000', 10) || 4000;
+      const timeout = setTimeout(() => {
+        if (!finished) {
+          finished = true;
+          fps = frames / ((performance.now() - start) / 1000);
+        }
         collect();
-      }
-    }, 2500);
+        // Keep the report fresh: re-collect every 8s so headless probes can
+        // sample the scene once the heavy GLB assets have finished mounting.
+        refreshTimer = window.setInterval(collect, 8000);
+      }, delayMs);
 
     return () => {
       clearTimeout(timeout);
+      clearInterval(refreshTimer);
       window.removeEventListener('error', onWindowError);
       console.error = origError;
     };

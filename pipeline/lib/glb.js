@@ -142,7 +142,15 @@ export function imageInfo(json, buf) {
     }
     if (img.bufferView !== undefined) {
       const bv = json.bufferViews[img.bufferView];
-      const data = new Uint8Array(buf, (json.buffers[0].byteOffset ?? 0) + bv.byteOffset, bv.byteLength);
+      // GLB layout: 12-byte header + JSON chunk (8-byte header + data) +
+      // BIN chunk (8-byte header + data). bufferView offsets are relative to
+      // the BIN data, so the absolute file offset needs the full preamble.
+      // NOTE: use subarray() — `new Uint8Array(buf, off, len)` ignores the
+      // offset for Node Buffers and always starts at byte 0.
+      const jsonChunkLength = new DataView(buf.buffer, buf.byteOffset, buf.byteLength).getUint32(12, true);
+      const binDataStart = 20 + jsonChunkLength + 8;
+      const abs = binDataStart + (json.buffers[0].byteOffset ?? 0) + bv.byteOffset;
+      const data = buf.subarray(abs, abs + bv.byteLength);
       base.sizeKB = Math.round(bv.byteLength / 1024);
       base.dim = sniffImage(data);
     }

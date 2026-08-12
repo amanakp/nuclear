@@ -84,7 +84,11 @@ const LOD_DISTANCES = {
 // Capping to 1K cuts texture GPU memory ~16x with negligible visual cost on
 // XR displays and is what keeps the 13-component campus inside the Quest 3
 // browser tab budget (previously ~1920 MiB of texture uploads at startup).
+// The cap is applied ONLY on XR headsets: desktop gets the native 4096
+// textures so the GLB facades keep full tripo3d detail (capped facades read
+// as "noisy/checkerboard" once the 4096² window grid is downsampled 16x).
 const MAX_TEXTURE_SIZE = 1024;
+const XR_UA = /OculusBrowser|Quest/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '');
 
 // ── Core loader ──────────────────────────────────────────────────────────────
 function loadGLB(path: string): Promise<GLTF> {
@@ -146,13 +150,19 @@ function capTextureSize(root: THREE.Object3D): void {
         const tex = textured[slot];
         if (!tex || seen.has(tex)) continue;
         seen.add(tex);
-        const img = tex.image as { width?: number; height?: number } | null;
-        if (!img?.width || !img.height || Math.max(img.width, img.height) <= MAX_TEXTURE_SIZE) continue;
+        const img = tex.image as { width?: number; height?: number; complete?: boolean } | null;
+        if (!img) continue;
+        // Skip if image not fully loaded (width/height 0 or complete=false)
+        const w = img.width ?? 0;
+        const h = img.height ?? 0;
+        if (w === 0 || h === 0 || img.complete === false) continue;
+        if (!XR_UA) continue; // desktop keeps native tripo3d resolution
+        if (Math.max(w, h) <= MAX_TEXTURE_SIZE) continue;
         try {
-          const scale = MAX_TEXTURE_SIZE / Math.max(img.width, img.height);
+          const scale = MAX_TEXTURE_SIZE / Math.max(w, h);
           const canvas = document.createElement('canvas');
-          canvas.width = Math.max(1, Math.round(img.width * scale));
-          canvas.height = Math.max(1, Math.round(img.height * scale));
+          canvas.width = Math.max(1, Math.round(w * scale));
+          canvas.height = Math.max(1, Math.round(h * scale));
           const ctx = canvas.getContext('2d');
           if (!ctx) continue;
           ctx.imageSmoothingEnabled = true;
@@ -471,8 +481,12 @@ export async function loadSMRReactorBuilding(): Promise<LoadedAsset | null> {
 
   const group = new THREE.Group();
   group.name = 'SMR_ReactorBuilding';
-  group.position.copy(SMR_WORLD_POS);
   disposables.forEach((component) => group.add(component));
+
+  // LOD root must live at the facility site: THREE.LOD picks its level from
+  // the distance to the LOD object itself. With the LOD at the origin the
+  // camera distance was measured from (0,0,0), so the 500 m cull level hid
+  // the whole campus at any overview framing (origin distance > 500 m).
 
   // Steam plume over the exhaust stack top (stack centre [36, 17, 30], h=34).
   const steamTexture = createGlowTexture('rgba(255,255,255,0.85)', 'rgba(255,255,255,0.25)', 256);
@@ -510,6 +524,7 @@ export async function loadSMRReactorBuilding(): Promise<LoadedAsset | null> {
   };
 
   const lod = new THREE.LOD();
+  lod.position.copy(SMR_WORLD_POS);
   lod.addLevel(group, LOD_DISTANCES.LOD0);
   // Empty cull object beyond 500m
   lod.addLevel(new THREE.Object3D(), LOD_DISTANCES.CULL);

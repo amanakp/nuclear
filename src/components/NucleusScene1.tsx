@@ -81,6 +81,7 @@ export const NucleusScene1: React.FC<NucleusScene1Props> = ({
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.domElement.style.touchAction = 'none';
     container.appendChild(renderer.domElement);
 
