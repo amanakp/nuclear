@@ -160,6 +160,10 @@ export const BottomDock: React.FC<BottomDockProps> = ({
     { id: 'turbine', label: 'Turbine Hall', icon: <Activity className="w-3.5 h-3.5" /> },
     { id: 'coolant', label: 'Cooling', icon: <Thermometer className="w-3.5 h-3.5" /> },
     { id: 'gantry', label: 'Switchyard', icon: <Gauge className="w-3.5 h-3.5" /> },
+    { id: 'smr', label: 'SMR', icon: <Radio className="w-3.5 h-3.5" /> },
+    { id: 'facilities', label: 'Facilities', icon: <Layers className="w-3.5 h-3.5" /> },
+    { id: 'city', label: 'Bangkok', icon: <Search className="w-3.5 h-3.5" /> },
+    { id: 'sea', label: 'Gulf', icon: <Activity className="w-3.5 h-3.5" /> },
   ];
 
   const shaders = [

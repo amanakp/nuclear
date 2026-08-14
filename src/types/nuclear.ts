@@ -1,4 +1,4 @@
-export type ZoneId = 'core' | 'turbine' | 'gantry' | 'coolant' | 'overview';
+export type ZoneId = 'core' | 'turbine' | 'gantry' | 'coolant' | 'overview' | 'smr' | 'facilities' | 'city' | 'sea';
 
 export type RenderShaderMode = 'pbr' | 'xray' | 'thermal' | 'cherenkov' | 'flow';
 

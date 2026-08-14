@@ -340,6 +340,10 @@ const ZONE_RENDER_PATTERNS: Record<ZoneId, string[]> = {
     'water tank dome',
   ],
   gantry: ['switchyard', 'transformer', 'insulator', 'busbar', 'annex'],
+  smr: ['smr', 'containment', 'turbine_building', 'substation', 'exhaust', 'center_building', 'central_unit', 'perimeter', 'pumps', 'pipe_loop', 'hvac', 'solar'],
+  facilities: ['desalination', 'data_center', 'heating', 'district', 'pipeline', 'electric', 'ground', 'landscaping', 'solar'],
+  city: ['skyscraper', 'city', 'urban', 'tower', 'building'],
+  sea: ['ocean', 'sea', 'water', 'shore', 'beach', 'wave'],
 };
 
 function normalizeRenderTargetName(name: string): string {

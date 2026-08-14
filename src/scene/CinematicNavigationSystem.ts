@@ -80,6 +80,26 @@ export const ENTERPRISE_CAMERA_PRESETS: Record<ZoneId, LocalCameraPreset> = {
     target: new THREE.Vector3(55, 9, 4),
     fov: 40,
   },
+  smr: {
+    position: new THREE.Vector3(-120, 40, -110),
+    target: new THREE.Vector3(-120, 6, -250),
+    fov: 40,
+  },
+  facilities: {
+    position: new THREE.Vector3(10, 75, 30),
+    target: new THREE.Vector3(-40, 8, -250),
+    fov: 42,
+  },
+  city: {
+    position: new THREE.Vector3(330, 115, 330),
+    target: new THREE.Vector3(200, 18, 60),
+    fov: 38,
+  },
+  sea: {
+    position: new THREE.Vector3(-60, 45, -560),
+    target: new THREE.Vector3(-80, 3, -320),
+    fov: 44,
+  },
 };
 
 export const WALKTHROUGH_CAMERA_PRESETS: Record<WalkthroughChamber, LocalCameraPreset> = {

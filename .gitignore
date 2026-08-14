@@ -1,0 +1,19 @@
+node_modules/
+dist/
+Library/
+Logs/
+UserSettings/
+Temp/
+Obj/
+Build/
+Builds/
+.vscode/
+*.log
+
+# Unity generated
+MemoryCaptures/
+Recordings/
+
+# OS
+.DS_Store
+Thumbs.db

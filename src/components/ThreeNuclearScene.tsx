@@ -33,6 +33,7 @@ import {
   createSpatialHotspotManager,
   SpatialHotspotManager,
 } from '../scene/SpatialHotspotManager';
+import { Scene1AssetHandles } from '../scene/Scene1Composition';
 
 interface ThreeNuclearSceneProps {
   currentZone: ZoneId;
@@ -59,6 +60,9 @@ interface ThreeNuclearSceneProps {
   onXRSessionEnd?: () => void;
   onPresentationHotspot?: (hotspotId: string | null) => void;
   radiationMode?: RadiationVisualizationMode;
+  scene1Assets?: Scene1AssetHandles | null;
+  scene1Loading?: boolean;
+  scene1LoadError?: string | null;
 }
 
 type LoadState = 'initializing' | 'loading' | 'ready' | 'error';
@@ -628,6 +632,8 @@ function createFallbackProceduralScene(
   return group;
 }
 
+const SCENE1_ZONES: ZoneId[] = ['smr', 'facilities', 'city', 'sea'];
+
 export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
   currentZone,
   onChangeZone,
@@ -644,6 +650,10 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
   onXRSessionStart,
   onXRSessionEnd,
   onPresentationHotspot,
+  radiationMode: _radiationMode,
+  scene1Assets,
+  scene1Loading,
+  scene1LoadError,
 }) => {
   const canvasHostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -675,6 +685,10 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
   const xrEndCallbackRef = useRef(onXRSessionEnd);
   const isXRayRef = useRef(renderMode === 'xray');
   const activeChamberRef = useRef<WalkthroughChamber | null>(null);
+
+  // Scene 1 refs
+  const scene1GroupsRef = useRef<THREE.Group[]>([]);
+  const scene1DisposedRef = useRef(false);
 
   const [loadState, setLoadState] = useState<LoadState>('initializing');
   const [loadErrorMessage, setLoadErrorMessage] = useState<string | null>(null);
@@ -766,6 +780,51 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
   useEffect(() => {
     hotspotManagerRef.current?.updateHotspotSelection(selectedHotspotId);
   }, [selectedHotspotId]);
+
+  // Scene 1 asset mounting - add/remove Scene 1 groups based on zone and loading state
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    const isScene1Zone = SCENE1_ZONES.includes(currentZone);
+
+    // Clean up previous Scene 1 groups if zone changed away from Scene 1
+    if (!isScene1Zone && scene1GroupsRef.current.length > 0) {
+      scene1GroupsRef.current.forEach((group) => {
+        scene.remove(group);
+        group.clear();
+      });
+      scene1GroupsRef.current = [];
+      scene1DisposedRef.current = false;
+      return;
+    }
+
+    // If not a Scene 1 zone, nothing to do
+    if (!isScene1Zone) return;
+
+    // If Scene 1 assets are loaded, add them to the scene
+    if (scene1Assets && !scene1DisposedRef.current) {
+      // Only add if not already added
+      if (scene1GroupsRef.current.length === 0) {
+        const groupsToAdd = [scene1Assets.smr, scene1Assets.city, scene1Assets.facilities];
+        groupsToAdd.forEach((group) => {
+          scene.add(group);
+          scene1GroupsRef.current.push(group);
+        });
+        console.info('[ThreeNuclearScene] Scene 1 assets mounted to scene');
+      }
+    }
+
+    // Cleanup function
+    return () => {
+      if (scene1GroupsRef.current.length > 0) {
+        scene1GroupsRef.current.forEach((group) => {
+          scene.remove(group);
+        });
+        scene1GroupsRef.current = [];
+      }
+    };
+  }, [currentZone, scene1Assets]);
 
   useEffect(() => {
     const host = canvasHostRef.current;
@@ -1420,6 +1479,13 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
         renderer?.domElement.removeEventListener('pointerup', handlePointerUp);
         renderer?.domElement.removeEventListener('pointercancel', handlePointerCancel);
 
+        // Dispose Scene 1 assets
+        if (scene1Assets && !scene1DisposedRef.current) {
+          scene1Assets.dispose();
+          scene1DisposedRef.current = true;
+        }
+        scene1GroupsRef.current = [];
+
         navigationSystemRef.current?.dispose();
         navigationSystemRef.current = null;
         hotspotManagerRef.current?.dispose();
@@ -1558,6 +1624,31 @@ postProcessingRef.current?.dispose();
                   : 'WebGL initialization failed'}
               </strong>
               <span>{loadErrorMessage ?? 'Inspect the browser console for details.'}</span>
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Scene 1 Loading State */}
+      {scene1Loading && SCENE1_ZONES.includes(currentZone) && (
+        <div className="scene-loading-state" role="status" aria-live="polite">
+          <div className="scene-loading-card">
+            <span className="scene-loading-spinner" aria-hidden="true" />
+            <span className="scene-loading-copy">
+              <strong>Loading Scene 1</strong>
+              <span>Streaming SMR campus, city & facilities assets...</span>
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Scene 1 Error State */}
+      {scene1LoadError && SCENE1_ZONES.includes(currentZone) && (
+        <div className="scene-loading-state" role="alert">
+          <div className="scene-loading-card is-error">
+            <span className="scene-loading-copy">
+              <strong>Scene 1 failed to load</strong>
+              <span>{scene1LoadError}</span>
             </span>
           </div>
         </div>
