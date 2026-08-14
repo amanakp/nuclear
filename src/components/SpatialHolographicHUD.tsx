@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { ZoneId, RenderShaderMode, TelemetryState, Hotspot3D, Alert, RadiationVisualizationMode, HotspotScreenPosition } from '../types/nuclear';
+import { ZoneId, RenderShaderMode, Hotspot3D, RadiationVisualizationMode, HotspotScreenPosition } from '../types/nuclear';
 import { spatialAudio } from '../audio/spatialAudio';
 import { BottomDock } from '../ui/SpatialUILayout';
 import { GlassPanel } from '../ui/GlassmorphismComponents';
 import { Ruler, CheckCircle2 } from 'lucide-react';
 import { DesktopNavigationMode } from '../scene/CinematicNavigationSystem';
-import { ExecutiveDashboard } from './ExecutiveDashboard';
 import { HotspotOverlay } from './HotspotOverlay';
 import { HOTSPOTS_DATA } from '../data/nuclearData';
 
@@ -14,14 +13,12 @@ interface SpatialHolographicHUDProps {
   onChangeZone: (zone: ZoneId) => void;
   renderMode: RenderShaderMode;
   onChangeRenderMode: (mode: RenderShaderMode) => void;
-  telemetry: TelemetryState;
   onUpdateControlRodDepth: (depth: number) => void;
   handRigEnabled: boolean;
   onToggleHandRig: () => void;
   isMuted: boolean;
   onToggleMute: () => void;
   selectedHotspot: Hotspot3D | null;
-  onCloseHotspotModal: () => void;
   onOpenAuraAI: () => void;
   isAuraOpen: boolean;
   onOpenScramModal: () => void;
@@ -31,7 +28,6 @@ interface SpatialHolographicHUDProps {
   navigationMode: DesktopNavigationMode;
   onChangeNavigationMode: (mode: DesktopNavigationMode) => void;
   onStartPresentation: () => void;
-  alerts: Alert[];
   radiationMode: RadiationVisualizationMode;
   hotspotScreenPositions: HotspotScreenPosition[];
   onSelectHotspot: (hotspot: Hotspot3D) => void;
@@ -39,25 +35,16 @@ interface SpatialHolographicHUDProps {
 
 export const SpatialHolographicHUD: React.FC<SpatialHolographicHUDProps> = ({
   currentZone, onChangeZone, renderMode, onChangeRenderMode,
-  telemetry, handRigEnabled, onToggleHandRig, isMuted, onToggleMute,
-  selectedHotspot, onCloseHotspotModal,
+  handRigEnabled, onToggleHandRig, isMuted, onToggleMute,
+  selectedHotspot,
   caliperActive, onToggleCaliper,
   navigationMode, onChangeNavigationMode, onStartPresentation,
-  alerts, hotspotScreenPositions, onSelectHotspot,
+  hotspotScreenPositions, onSelectHotspot,
 }) => {
   const [toolsOpen, setToolsOpen] = useState(false);
 
   return (
     <div className="hud-layer">
-      {/* EXECUTIVE DASHBOARD */}
-      <ExecutiveDashboard
-        telemetry={telemetry}
-        operationalMode={telemetry.operationalMode}
-        alerts={alerts}
-        selectedHotspot={selectedHotspot}
-        onCloseHotspot={onCloseHotspotModal}
-      />
-
       {/* 2D HOTSPOT OVERLAY */}
       <HotspotOverlay
         hotspots={HOTSPOTS_DATA}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ThreeNuclearScene } from './components/ThreeNuclearScene';
 import { SpatialHolographicHUD } from './components/SpatialHolographicHUD';
 import { HoloLensHandRig } from './components/HoloLensHandRig';
@@ -8,7 +8,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { assetManager, initializeAssetManager } from './assets/AssetManager';
 import { loadScene1Assets, Scene1AssetHandles } from './scene/Scene1Composition';
 import { SCENE1_ASSET_MANIFEST, SCENE1_ASSET_KEYS } from './data/scene1Manifest';
-import { ZoneId, RenderShaderMode, TelemetryState, Hotspot3D, OperationalMode, Alert, RadiationVisualizationMode, HotspotScreenPosition } from './types/nuclear';
+import { ZoneId, RenderShaderMode, TelemetryState, Hotspot3D, OperationalMode, RadiationVisualizationMode, HotspotScreenPosition } from './types/nuclear';
 import { AI_ZONE_NARRATIVES, HOTSPOTS_DATA } from './data/nuclearData';
 import { spatialAudio } from './audio/spatialAudio';
 import { DesktopNavigationMode } from './scene/CinematicNavigationSystem';
@@ -253,107 +253,6 @@ export default function App() {
     };
   }, [presentationRunId, startPresentationScript]);
 
-  // Dynamic Alerts from telemetry state
-  const alerts: Alert[] = useMemo(() => {
-    const results: Alert[] = [];
-    const now = Date.now();
-
-    if (telemetry.scramActive) {
-      results.push({
-        id: `alert-scram-${now}`,
-        type: 'critical',
-        title: 'SCRAM Initiated',
-        message: 'Emergency reactor shutdown in progress. All control rods fully inserted.',
-        timestamp: now,
-        hotspotId: 'reactor-vessel',
-        acknowledged: false,
-      });
-    }
-
-    if (telemetry.hotLegTempC > 340) {
-      results.push({
-        id: `alert-temp-critical-${now}`,
-        type: 'critical',
-        title: 'Critical Core Temperature',
-        message: `Hot leg at ${telemetry.hotLegTempC.toFixed(1)}°C — immediate action required.`,
-        timestamp: now,
-        hotspotId: 'reactor-vessel',
-        acknowledged: false,
-      });
-    } else if (telemetry.hotLegTempC > 335) {
-      results.push({
-        id: `alert-temp-${now}`,
-        type: 'warning',
-        title: 'Core Temperature Elevated',
-        message: `Hot leg temperature at ${telemetry.hotLegTempC.toFixed(1)}°C, approaching limit.`,
-        timestamp: now,
-        hotspotId: 'reactor-vessel',
-        acknowledged: false,
-      });
-    }
-
-    if (telemetry.ambientRadiationMicroSv > 0.6) {
-      results.push({
-        id: `alert-rad-critical-${now}`,
-        type: 'critical',
-        title: 'High Radiation Alert',
-        message: `Radiation at ${telemetry.ambientRadiationMicroSv.toFixed(2)} µSv/h — containment may be compromised.`,
-        timestamp: now,
-        hotspotId: 'reactor-vessel',
-        acknowledged: false,
-      });
-    } else if (telemetry.ambientRadiationMicroSv > 0.5) {
-      results.push({
-        id: `alert-rad-${now}`,
-        type: 'warning',
-        title: 'Radiation Increased',
-        message: `Ambient radiation at ${telemetry.ambientRadiationMicroSv.toFixed(2)} µSv/h.`,
-        timestamp: now,
-        hotspotId: 'reactor-vessel',
-        acknowledged: false,
-      });
-    }
-
-    if (telemetry.controlRodDepthPct > 75 && !telemetry.scramActive) {
-      results.push({
-        id: `alert-rods-${now}`,
-        type: 'warning',
-        title: 'Control Rod Deep Insertion',
-        message: `Rods at ${telemetry.controlRodDepthPct}% — power output affected.`,
-        timestamp: now,
-        hotspotId: 'reactor-vessel',
-        acknowledged: false,
-      });
-    }
-
-    if (telemetry.operationalMode === 'emergency') {
-      if (!results.some(a => a.type === 'critical')) {
-        results.push({
-          id: `alert-emergency-${now}`,
-          type: 'critical',
-          title: 'Emergency Mode Active',
-          message: 'Plant operating in emergency mode. Automated safety systems engaged.',
-          timestamp: now,
-          acknowledged: false,
-        });
-      }
-    }
-
-    if (results.length === 0) {
-      results.push({
-        id: `alert-nominal-${now}`,
-        type: 'maintenance',
-        title: 'All Systems Nominal',
-        message: 'All plant systems operating within normal parameters.',
-        timestamp: now,
-        acknowledged: false,
-        autoDismiss: true,
-      });
-    }
-
-    return results.slice(0, 5);
-  }, [telemetry]);
-
   // Spatial Audio continuous generator hum
   useEffect(() => {
     spatialAudio.startContinuousHum();
@@ -412,10 +311,6 @@ export default function App() {
   const handleSelectHotspot = useCallback((hotspot: Hotspot3D) => {
     setSelectedHotspot(hotspot);
     setCurrentZone((zone) => zone === hotspot.zone ? zone : hotspot.zone);
-  }, []);
-
-  const handleCloseHotspot = useCallback(() => {
-    setSelectedHotspot(null);
   }, []);
 
   const handleHotspotScreenPositionsUpdate = useCallback((positions: {
@@ -479,14 +374,12 @@ export default function App() {
             onChangeZone={setCurrentZone}
             renderMode={renderMode}
             onChangeRenderMode={setRenderMode}
-            telemetry={telemetry}
             onUpdateControlRodDepth={handleUpdateControlRodDepth}
             handRigEnabled={handRigEnabled}
             onToggleHandRig={() => setHandRigEnabled(!handRigEnabled)}
             isMuted={isMuted}
             onToggleMute={handleToggleMute}
             selectedHotspot={selectedHotspot}
-            onCloseHotspotModal={handleCloseHotspot}
             onOpenAuraAI={() => setIsAuraOpen(!isAuraOpen)}
             isAuraOpen={isAuraOpen}
             onOpenScramModal={() => setIsScramModalOpen(!isScramModalOpen)}
@@ -496,7 +389,6 @@ export default function App() {
             navigationMode={navigationMode}
             onChangeNavigationMode={setNavigationMode}
             onStartPresentation={handleStartPresentation}
-            alerts={alerts}
             radiationMode={radiationMode}
             hotspotScreenPositions={hotspotScreenPositions}
             onSelectHotspot={handleSelectHotspot}
