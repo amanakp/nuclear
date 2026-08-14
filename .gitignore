@@ -8,6 +8,7 @@ Obj/
 Build/
 Builds/
 .vscode/
+.vite/
 *.log
 
 # Unity generated
