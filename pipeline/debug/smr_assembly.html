@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>NUCLEUS — SMR Assembly Debug</title>
+<style>
+  body { margin: 0; overflow: hidden; font-family: ui-monospace, Consolas, monospace; background: #101418; }
+  canvas { display: block; }
+  #hud {
+    position: absolute; top: 8px; left: 8px; padding: 10px 14px;
+    background: rgba(8, 12, 16, 0.82); color: #b8e6c0; font-size: 12px;
+    border-radius: 8px; white-space: pre; line-height: 1.45; max-height: 82vh;
+    overflow: auto; border: 1px solid rgba(120, 200, 140, 0.35); z-index: 10;
+  }
+  #hud .warn { color: #ffd27a; }
+  #hud .err { color: #ff7a7a; }
+  #hud .ok { color: #7affa0; }
+  #hint {
+    position: absolute; bottom: 8px; left: 8px; color: rgba(255,255,255,0.55);
+    font-size: 11px; padding: 6px 10px; background: rgba(0,0,0,0.5); border-radius: 6px; z-index: 10;
+  }
+</style>
+</head>
+<body>
+<div id="hud">loading SMR assembly…</div>
+<div id="hint">drag: orbit &nbsp;·&nbsp; wheel: zoom &nbsp;·&nbsp; right-drag: pan &nbsp;·&nbsp; F: toggle bbox wireframes</div>
+<script type="module" src="./smr_assembly.ts"></script>
+</body>
+</html>

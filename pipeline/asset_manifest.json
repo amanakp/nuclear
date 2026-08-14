@@ -1,0 +1,697 @@
+{
+  "_comment": "NUCLEUS Scene 1 — Asset Manifest. Last updated: 2026-08-10. Status values: imported | staged | reference_only | pending_optimization | pending_lod | validated | production_ready. No GLB is marked production_ready until Draco/KTX2 optimization AND viewer validation have actually been executed.",
+  "version": "1.1.0",
+  "scene": "scene1",
+  "assets": [
+    {
+      "id": "SMR_ReactorBuilding",
+      "type": "modular_assembly",
+      "zone": "smr",
+      "priority": 1,
+      "category": "A_AI_Generated",
+      "status": "validated",
+      "hotspotId": "smr-01",
+      "worldPosition": [-120, 0, -250],
+      "worldRotation": [0, 0, 0],
+      "scale": 1.0,
+      "assembly": {
+        "children": [
+          "SMR_ContainmentDome",
+          "SMR_CenterBuilding",
+          "SMR_RooftopHVAC",
+          "SMR_CentralUnitBlock",
+          "SMR_TurbineBuilding",
+          "SMR_ExhaustStack",
+          "SMR_CentralSubstation",
+          "SMR_MechanicalPumps",
+          "SMR_PipeLoopSegment",
+          "SMR_PerimeterWall_Sea",
+          "SMR_PerimeterWall_Land",
+          "SMR_SolarArray_A",
+          "SMR_SolarArray_B"
+        ],
+        "notes": "Logical parent only — component GLBs are NOT physically merged. Each child can be positioned/replaced independently. Transforms tuned 2026-08-10 from measured component bboxes (pipeline/inspect_glb.mjs) against the blockout layout (assets/blender/SMR/SMR_ReactorBuilding_blockout.py). Layout finalization 2026-08-10: dome re-measured (d~27 m, h=30 m), exhaust stack raised to h=34 m, perimeter wall instantiated TWICE (sea edge world z=-294, inland edge world z=-204) to enclose the campus, solar rows added on the east utility field, seawater intake pipe extended to the waterline. Numeric check (pipeline/check_smr_assembly.mjs): no AABB overlaps, all bases at y=0, footprint 124.9 x 113.2 m vs blockout 130 x 113 m."
+      },
+      "lods": {
+        "LOD0": { "status": "n/a_assembly" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": true,
+        "notes": [
+          "Numeric validation passed (grounded, no AABB overlaps, footprint within 3% of blockout).",
+          "Automated render smoke test passed 2026-08-10: headless Chrome, all components loaded, frame rendered (pipeline/debug/cdp_probe.mjs).",
+          "Integrated into the live scene 2026-08-10: NucleusScene1.tsx loads the modular assembly asynchronously and swaps out the procedural createNuwardPlant on success; steam plume + label added over the exhaust stack.",
+          "Memory fix 2026-08-10 (Quest 3 startup crash, 'memory allocation of 2013265920 bytes failed'): assetLoader caches GLBs by path (wall/solar/turbine instances share one load via clone) and caps embedded 4096x4096 JPEGs to 1024px at load; hero assets are deferred until the camera approaches. Texture GPU memory ~16x lower.",
+          "Human visual review of the assembled campus in the live scene (FOCUS_PRESETS 'smr') still required."
+        ]
+      },
+      "nucleus": {
+        "integrated": true,
+        "replacesProceduralCode": "src/scene1/nuwardPlant.ts",
+        "loaderFile": "src/scene1/assetLoader.ts"
+      }
+    },
+    {
+      "id": "SMR_ContainmentDome",
+      "type": "glb_component",
+      "zone": "smr",
+      "priority": 1,
+      "category": "A_AI_Generated",
+      "status": "imported",
+      "parent": "SMR_ReactorBuilding",
+      "hotspotId": "smr-01",
+      "files": {
+        "raw": "assets/raw_glb/SMR/containment_dome_raw.glb",
+        "production": "assets/production_glb/SMR/SMR_ContainmentDome_LOD0.glb",
+        "public": "/assets/scene1/SMR/SMR_ContainmentDome_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/SMR/SMR_ContainmentDome_LOD0.glb", "publicPath": "/assets/scene1/SMR/SMR_ContainmentDome_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 28732,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied.", "Scale/origin unverified in viewer."]
+      }
+    },
+    {
+      "id": "SMR_TurbineBuilding",
+      "type": "glb_component",
+      "zone": "smr",
+      "priority": 1,
+      "category": "A_AI_Generated",
+      "status": "imported",
+      "parent": "SMR_ReactorBuilding",
+      "hotspotId": "smr-01",
+      "files": {
+        "raw": "assets/raw_glb/SMR/turbine_building_raw.glb",
+        "production": "assets/production_glb/SMR/SMR_TurbineBuilding_LOD0.glb",
+        "public": "/assets/scene1/SMR/SMR_TurbineBuilding_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/SMR/SMR_TurbineBuilding_LOD0.glb", "publicPath": "/assets/scene1/SMR/SMR_TurbineBuilding_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 29031,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied.", "Scale/origin unverified in viewer."]
+      }
+    },
+    {
+      "id": "SMR_CenterBuilding",
+      "type": "glb_component",
+      "zone": "smr",
+      "priority": 2,
+      "category": "A_AI_Generated",
+      "status": "imported",
+      "parent": "SMR_ReactorBuilding",
+      "hotspotId": "smr-01",
+      "files": {
+        "raw": "assets/raw_glb/SMR/center_building_structure_raw.glb",
+        "production": "assets/production_glb/SMR/SMR_CenterBuilding_LOD0.glb",
+        "public": "/assets/scene1/SMR/SMR_CenterBuilding_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/SMR/SMR_CenterBuilding_LOD0.glb", "publicPath": "/assets/scene1/SMR/SMR_CenterBuilding_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 29021,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied.", "Reused TWICE on the SMR campus as SMR_SolarArray_A (x=76, z=6) and SMR_SolarArray_B (x=76, z=36) on the east utility field."]
+      }
+    },
+    {
+      "id": "SMR_RooftopHVAC",
+      "type": "glb_component",
+      "zone": "smr",
+      "priority": 3,
+      "category": "A_AI_Generated",
+      "status": "imported",
+      "parent": "SMR_ReactorBuilding",
+      "hotspotId": "smr-01",
+      "files": {
+        "raw": "assets/raw_glb/SMR/center_rooftop_hvac_raw.glb",
+        "production": "assets/production_glb/SMR/SMR_RooftopHVAC_LOD0.glb",
+        "public": "/assets/scene1/SMR/SMR_RooftopHVAC_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/SMR/SMR_RooftopHVAC_LOD0.glb", "publicPath": "/assets/scene1/SMR/SMR_RooftopHVAC_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 31066,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "SMR_CentralSubstation",
+      "type": "glb_component",
+      "zone": "smr",
+      "priority": 2,
+      "category": "A_AI_Generated",
+      "status": "imported",
+      "parent": "SMR_ReactorBuilding",
+      "hotspotId": "smr-01",
+      "files": {
+        "raw": "assets/raw_glb/SMR/central_substation_raw.glb",
+        "production": "assets/production_glb/SMR/SMR_CentralSubstation_LOD0.glb",
+        "public": "/assets/scene1/SMR/SMR_CentralSubstation_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/SMR/SMR_CentralSubstation_LOD0.glb", "publicPath": "/assets/scene1/SMR/SMR_CentralSubstation_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 29373,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "SMR_CentralUnitBlock",
+      "type": "glb_component",
+      "zone": "smr",
+      "priority": 2,
+      "category": "A_AI_Generated",
+      "status": "imported",
+      "parent": "SMR_ReactorBuilding",
+      "hotspotId": "smr-01",
+      "files": {
+        "raw": "assets/raw_glb/SMR/central_unit_block_raw.glb",
+        "production": "assets/production_glb/SMR/SMR_CentralUnitBlock_LOD0.glb",
+        "public": "/assets/scene1/SMR/SMR_CentralUnitBlock_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/SMR/SMR_CentralUnitBlock_LOD0.glb", "publicPath": "/assets/scene1/SMR/SMR_CentralUnitBlock_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 27697,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "SMR_PerimeterWall",
+      "type": "glb_component",
+      "zone": "smr",
+      "priority": 3,
+      "category": "A_AI_Generated",
+      "status": "imported",
+      "parent": "SMR_ReactorBuilding",
+      "hotspotId": "smr-01",
+      "files": {
+        "raw": "assets/raw_glb/SMR/perimeter_wall_raw.glb",
+        "production": "assets/production_glb/SMR/SMR_PerimeterWall_LOD0.glb",
+        "public": "/assets/scene1/SMR/SMR_PerimeterWall_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/SMR/SMR_PerimeterWall_LOD0.glb", "publicPath": "/assets/scene1/SMR/SMR_PerimeterWall_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 30164,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied.", "Instantiated TWICE in the scene assembly as SMR_PerimeterWall_Sea (world z=-294, sea edge) and SMR_PerimeterWall_Land (world z=-204, inland edge) — the campus reads as an enclosed facility."]
+      }
+    },
+    {
+      "id": "SMR_ExhaustStack",
+      "type": "glb_component",
+      "zone": "smr",
+      "priority": 3,
+      "category": "A_AI_Generated",
+      "status": "imported",
+      "parent": "SMR_ReactorBuilding",
+      "hotspotId": "smr-01",
+      "files": {
+        "raw": "assets/raw_glb/SMR/exhaust_stack_raw.glb",
+        "production": "assets/production_glb/SMR/SMR_ExhaustStack_LOD0.glb",
+        "public": "/assets/scene1/SMR/SMR_ExhaustStack_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/SMR/SMR_ExhaustStack_LOD0.glb", "publicPath": "/assets/scene1/SMR/SMR_ExhaustStack_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 29763,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "SMR_MechanicalPumps",
+      "type": "glb_component",
+      "zone": "smr",
+      "priority": 3,
+      "category": "A_AI_Generated",
+      "status": "imported",
+      "parent": "SMR_ReactorBuilding",
+      "hotspotId": "smr-01",
+      "files": {
+        "raw": "assets/raw_glb/SMR/mechanical_pump_assembly_raw.glb",
+        "production": "assets/production_glb/SMR/SMR_MechanicalPumps_LOD0.glb",
+        "public": "/assets/scene1/SMR/SMR_MechanicalPumps_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/SMR/SMR_MechanicalPumps_LOD0.glb", "publicPath": "/assets/scene1/SMR/SMR_MechanicalPumps_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 29623,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "SMR_PipeLoopSegment",
+      "type": "glb_component",
+      "zone": "smr",
+      "priority": 3,
+      "category": "A_AI_Generated",
+      "status": "imported",
+      "parent": "SMR_ReactorBuilding",
+      "hotspotId": "smr-01",
+      "files": {
+        "raw": "assets/raw_glb/SMR/pipe_loop_segment_03_raw.glb",
+        "production": "assets/production_glb/SMR/SMR_PipeLoopSegment_LOD0.glb",
+        "public": "/assets/scene1/SMR/SMR_PipeLoopSegment_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/SMR/SMR_PipeLoopSegment_LOD0.glb", "publicPath": "/assets/scene1/SMR/SMR_PipeLoopSegment_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 29361,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "Facilities_GroundPavement",
+      "type": "glb_component",
+      "zone": "facilities",
+      "priority": 4,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/Facilities/ground_pavement_raw.glb",
+        "production": "assets/production_glb/Facilities/GroundPavement_LOD0.glb",
+        "public": "/assets/scene1/Facilities/GroundPavement_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/Facilities/GroundPavement_LOD0.glb", "publicPath": "/assets/scene1/Facilities/GroundPavement_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 29021,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "Facilities_LandscapingTrees",
+      "type": "glb_component",
+      "zone": "facilities",
+      "priority": 4,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/Facilities/landscaping_trees_raw.glb",
+        "production": "assets/production_glb/Facilities/LandscapingTrees_LOD0.glb",
+        "public": "/assets/scene1/Facilities/LandscapingTrees_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/Facilities/LandscapingTrees_LOD0.glb", "publicPath": "/assets/scene1/Facilities/LandscapingTrees_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 31961,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "Facilities_SolarPanelArray",
+      "type": "glb_component",
+      "zone": "facilities",
+      "priority": 4,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/Facilities/solar_panel_array_raw.glb",
+        "production": "assets/production_glb/Facilities/SolarPanelArray_LOD0.glb",
+        "public": "/assets/scene1/Facilities/SolarPanelArray_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/Facilities/SolarPanelArray_LOD0.glb", "publicPath": "/assets/scene1/Facilities/SolarPanelArray_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 29021,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "City_MainSkyscraper",
+      "type": "glb_component",
+      "zone": "city",
+      "priority": 5,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/City/main_skyscraper_raw.glb",
+        "production": "assets/production_glb/City/MainSkyscraper_LOD0.glb",
+        "public": "/assets/scene1/City/MainSkyscraper_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/City/MainSkyscraper_LOD0.glb", "publicPath": "/assets/scene1/City/MainSkyscraper_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 28369,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied.", "Placed in the live scene 2026-08-10 at (160, 113, -120) as a 225 m hero tower on the city's west edge."]
+      }
+    },
+    {
+      "id": "WT_VenwindTurbine",
+      "type": "glb_component",
+      "zone": "sea",
+      "priority": 5,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/City/WindTurbines/venwind_turbine_raw.glb",
+        "production": "assets/production_glb/WindTurbines/VenwindTurbine_LOD0.glb",
+        "public": "/assets/scene1/WindTurbines/VenwindTurbine_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/WindTurbines/VenwindTurbine_LOD0.glb", "publicPath": "/assets/scene1/WindTurbines/VenwindTurbine_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 4492,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied.", "Likely complete turbine assembly (prefer over individual parts).", "Placed in the live scene 2026-08-10 as two real-scale (225 m) offshore turbines at (-520, -460) and (-660, -590); rotor diameter 157.8 m, 191 m spacing avoids blade clash."]
+      }
+    },
+    {
+      "id": "WT_WindmillBladePole",
+      "type": "glb_component",
+      "zone": "sea",
+      "priority": 6,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/City/WindTurbines/windmill_blade_pole_raw.glb",
+        "production": "assets/production_glb/WindTurbines/WindmillBladePole_LOD0.glb",
+        "public": "/assets/scene1/WindTurbines/WindmillBladePole_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/WindTurbines/WindmillBladePole_LOD0.glb", "publicPath": "/assets/scene1/WindTurbines/WindmillBladePole_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 27722,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "WT_GearboxGenerator",
+      "type": "glb_component",
+      "zone": "sea",
+      "priority": 6,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/City/WindTurbines/gearbox_generator_raw.glb",
+        "production": "assets/production_glb/WindTurbines/GearboxGenerator_LOD0.glb",
+        "public": "/assets/scene1/WindTurbines/GearboxGenerator_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/WindTurbines/GearboxGenerator_LOD0.glb", "publicPath": "/assets/scene1/WindTurbines/GearboxGenerator_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 10701,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "WT_NacelleHousing",
+      "type": "glb_component",
+      "zone": "sea",
+      "priority": 6,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/City/WindTurbines/nacelle_housing_raw.glb",
+        "production": "assets/production_glb/WindTurbines/NacelleHousing_LOD0.glb",
+        "public": "/assets/scene1/WindTurbines/NacelleHousing_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/WindTurbines/NacelleHousing_LOD0.glb", "publicPath": "/assets/scene1/WindTurbines/NacelleHousing_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 1230,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "WT_YawBearing",
+      "type": "glb_component",
+      "zone": "sea",
+      "priority": 6,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/City/WindTurbines/yaw_bearing_raw.glb",
+        "production": "assets/production_glb/WindTurbines/YawBearing_LOD0.glb",
+        "public": "/assets/scene1/WindTurbines/YawBearing_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/WindTurbines/YawBearing_LOD0.glb", "publicPath": "/assets/scene1/WindTurbines/YawBearing_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 12405,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "WT_YawBearingNacelleBase",
+      "type": "glb_component",
+      "zone": "sea",
+      "priority": 6,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/City/WindTurbines/yaw_bearing_nacelle_base_raw.glb",
+        "production": "assets/production_glb/WindTurbines/YawBearingNacelleBase_LOD0.glb",
+        "public": "/assets/scene1/WindTurbines/YawBearingNacelleBase_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/WindTurbines/YawBearingNacelleBase_LOD0.glb", "publicPath": "/assets/scene1/WindTurbines/YawBearingNacelleBase_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 11680,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "WT_WindmillSingleBlade",
+      "type": "glb_component",
+      "zone": "sea",
+      "priority": 6,
+      "category": "B_External_Download",
+      "status": "imported",
+      "files": {
+        "raw": "assets/raw_glb/City/WindTurbines/windmill_single_blade_raw.glb",
+        "production": "assets/production_glb/WindTurbines/WindmillSingleBlade_LOD0.glb",
+        "public": "/assets/scene1/WindTurbines/WindmillSingleBlade_LOD0.glb"
+      },
+      "lods": {
+        "LOD0": { "file": "assets/production_glb/WindTurbines/WindmillSingleBlade_LOD0.glb", "publicPath": "/assets/scene1/WindTurbines/WindmillSingleBlade_LOD0.glb", "status": "imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "pending_optimization"
+      },
+      "validation": {
+        "passed": false,
+        "fileSizeKB": 146,
+        "notes": ["Byte-identical copy of raw GLB — no compression applied."]
+      }
+    },
+    {
+      "id": "REF_MeshyAIRiversideNuclear",
+      "type": "glb_reference",
+      "zone": "smr",
+      "priority": 9,
+      "category": "C_Reference",
+      "status": "reference_only",
+      "files": {
+        "raw": "assets/raw_glb/Reference/meshy_ai_riverside_nuclear_raw.glb",
+        "production": null,
+        "public": null
+      },
+      "lods": {
+        "LOD0": { "status": "not_imported" },
+        "LOD1": { "status": "missing" },
+        "LOD2": { "status": "missing" }
+      },
+      "optimization": {
+        "dracoApplied": false,
+        "ktx2Applied": false,
+        "status": "n_a"
+      },
+      "validation": {
+        "passed": false,
+        "notes": ["Kept as raw reference only — older Meshy export, not promoted to production. Evaluate before use."]
+      }
+    }
+  ]
+}
