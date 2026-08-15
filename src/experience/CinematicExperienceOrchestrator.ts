@@ -5,6 +5,17 @@ import { CinematicSceneId, CinematicSceneConfig, CinematicContext } from './Cine
 import { SCENE1_ASSET_MANIFEST } from '../data/scene1Manifest';
 import { loadScene1Assets } from '../scene/Scene1Composition';
 
+const requireNavigation = (ctx: CinematicContext) => {
+  const navigation = ctx.navigationSystem;
+  if (!navigation) {
+    throw new Error(
+      '[CinematicExperience] navigationSystem is not wired. ' +
+        'ThreeNuclearScene must publish it via onNavigationReady before any scene onEnter runs.',
+    );
+  }
+  return navigation;
+};
+
 const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
   initialization: {
     id: 'initialization',
@@ -54,7 +65,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     interaction: { type: 'auto', onComplete: () => {} },
     transition: { type: 'fly', duration: 8000, nextScene: 'journey_to_source' },
     onEnter: async (ctx) => {
-      ctx.navigationSystem.transitionToPreset({
+      requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(330, 115, 330),
         target: new THREE.Vector3(28, 65, -185),
         fov: 38,
@@ -80,7 +91,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
       if (!ctx.scene1Assets) {
         ctx.scene1Assets = await loadScene1Assets();
       }
-      ctx.navigationSystem.transitionToPreset({
+      requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(10, 75, 30),
         target: new THREE.Vector3(-40, 8, -250),
         fov: 42,
@@ -108,7 +119,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
       if (!ctx.scene1Assets) {
         ctx.scene1Assets = await loadScene1Assets();
       }
-      ctx.navigationSystem.transitionToPreset({
+      requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(-120, 40, -110),
         target: new THREE.Vector3(-120, 6, -250),
         fov: 40,
@@ -126,7 +137,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     interaction: { type: 'click', target: 'activation_control', onComplete: () => {} },
     transition: { type: 'fade', duration: 3000, nextScene: 'enter_smr' },
     onEnter: async (ctx) => {
-      ctx.navigationSystem.transitionToPreset({
+      requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(-120, 40, -110),
         target: new THREE.Vector3(-120, 6, -250),
         fov: 40,
@@ -149,7 +160,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     interaction: { type: 'auto', onComplete: () => {} },
     transition: { type: 'fade', duration: 4000, nextScene: 'inside_smr' },
     onEnter: async (ctx) => {
-      ctx.navigationSystem.transitionToPreset({
+      requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(-120, 15, -250),
         target: new THREE.Vector3(-120, 6, -250),
         fov: 48,
@@ -167,7 +178,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     interaction: { type: 'auto', onComplete: () => {} },
     transition: { type: 'fade', duration: 3000, nextScene: 'energy_door' },
     onEnter: async (ctx) => {
-      ctx.navigationSystem.transitionToPreset({
+      requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(-124, 12, -252),
         target: new THREE.Vector3(-130, 10.5, -250),
         fov: 48,
@@ -190,7 +201,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     interaction: { type: 'auto', onComplete: () => {} },
     transition: { type: 'fly', duration: 8000, nextScene: 'bangkok_tomorrow' },
     onEnter: async (ctx) => {
-      ctx.navigationSystem.transitionToPreset({
+      requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(-60, 45, -560),
         target: new THREE.Vector3(-80, 3, -320),
         fov: 44,
@@ -207,7 +218,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     visibleGroups: ['city', 'facilities', 'smr'],
     interaction: { type: 'auto', onComplete: () => {} },
     onEnter: async (ctx) => {
-      ctx.navigationSystem.transitionToPreset({
+      requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(330, 115, 330),
         target: new THREE.Vector3(28, 65, -185),
         fov: 38,

@@ -60,6 +60,13 @@ interface ThreeNuclearSceneProps {
   onXRSessionStart?: () => void;
   onXRSessionEnd?: () => void;
   onPresentationHotspot?: (hotspotId: string | null) => void;
+  onRendererReady?: (renderer: THREE.WebGLRenderer | null) => void;
+  onSceneReady?: (scene: THREE.Scene | null) => void;
+  onCameraReady?: (camera: THREE.PerspectiveCamera | null) => void;
+  onControlsReady?: (controls: OrbitControls | null) => void;
+  onNavigationReady?: (navigation: CinematicNavigationSystem | null) => void;
+  onEnterpriseRigReady?: (rig: EnterpriseSceneRig | null) => void;
+  onHotspotManagerReady?: (manager: SpatialHotspotManager | null) => void;
   radiationMode?: RadiationVisualizationMode;
   scene1Assets?: Scene1AssetHandles | null;
   scene1Loading?: boolean;
@@ -653,6 +660,13 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
   onXRSessionStart,
   onXRSessionEnd,
   onPresentationHotspot,
+  onRendererReady,
+  onSceneReady,
+  onCameraReady,
+  onControlsReady,
+  onNavigationReady,
+  onEnterpriseRigReady,
+  onHotspotManagerReady,
   radiationMode: _radiationMode,
   scene1Assets,
   scene1Loading,
@@ -873,6 +887,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
     try {
       scene = new THREE.Scene();
       sceneRef.current = scene;
+      onSceneReady?.(scene);
 
       const width = Math.max(host.clientWidth, 1);
       const height = Math.max(host.clientHeight, 1);
@@ -880,6 +895,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
       camera.position.copy(INITIAL_CAMERA_POSITION);
       camera.lookAt(INITIAL_CAMERA_TARGET);
       cameraRef.current = camera;
+      onCameraReady?.(camera);
 
       renderer = new THREE.WebGLRenderer({
         canvas: undefined,
@@ -908,6 +924,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
       renderer.domElement.className = 'scene-canvas';
       renderer.domElement.setAttribute('aria-label', 'Interactive nuclear digital twin campus');
       rendererRef.current = renderer;
+      onRendererReady?.(renderer);
       host.replaceChildren(renderer.domElement);
       assetManager.configureRenderer(renderer);
 
@@ -925,6 +942,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
       controls.minPolarAngle = 0.08;
       controls.maxPolarAngle = Math.PI * 0.49;
       controlsRef.current = controls;
+      onControlsReady?.(controls);
 
       const handleControlStart = () => {
         navigationSystemRef.current?.notifyUserInteraction();
@@ -956,6 +974,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
       );
       navigationSystem.setMode(navigationMode);
       navigationSystemRef.current = navigationSystem;
+      onNavigationReady?.(navigationSystem);
 
       const environment = createIndustrialEnvironment(
         scene,
@@ -1148,6 +1167,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
             campusMeshes,
           );
           enterpriseRigRef.current = enterpriseRig;
+          onEnterpriseRigReady?.(enterpriseRig);
           enterpriseRig.setZone(currentZoneRef.current);
           enterpriseRig.setRenderMode(
             renderModeRef.current,
@@ -1182,6 +1202,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
             }
           });
           hotspotManagerRef.current = hotspotManager;
+          onHotspotManagerReady?.(hotspotManager);
           hotspotUpdateCallbackRef.current([]);
 
           navigationSystem.setModelRoot(modelWrapper);
@@ -1538,8 +1559,15 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
 
         navigationSystemRef.current?.dispose();
         navigationSystemRef.current = null;
+        onNavigationReady?.(null);
         hotspotManagerRef.current?.dispose();
         hotspotManagerRef.current = null;
+        onHotspotManagerReady?.(null);
+        onRendererReady?.(null);
+        onSceneReady?.(null);
+        onCameraReady?.(null);
+        onControlsReady?.(null);
+        onEnterpriseRigReady?.(null);
         xrManagerRef.current?.dispose();
         xrManagerRef.current = null;
         postProcessingRef.current?.dispose();
@@ -1599,8 +1627,15 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
     controls?.dispose();
     navigationSystemRef.current?.dispose();
     navigationSystemRef.current = null;
+    onNavigationReady?.(null);
     hotspotManagerRef.current?.dispose();
     hotspotManagerRef.current = null;
+    onHotspotManagerReady?.(null);
+    onRendererReady?.(null);
+    onSceneReady?.(null);
+    onCameraReady?.(null);
+    onControlsReady?.(null);
+    onEnterpriseRigReady?.(null);
     xrManagerRef.current?.dispose();
     xrManagerRef.current = null;
 postProcessingRef.current?.dispose();

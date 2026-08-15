@@ -20,6 +20,13 @@ const {
     uiState,
     scene1Assets,
     currentVisibleGroups,
+    setRenderer,
+    setThreeScene,
+    setCamera,
+    setControls,
+    setNavigationSystem,
+    setEnterpriseRig,
+    setHotspotManager,
   } = useCinematicExperience();
 
   const [showLoading, setShowLoading] = useState(true);
@@ -201,6 +208,13 @@ const {
             onXRSessionStart={handleXRSessionStart}
             onXRSessionEnd={handleXRSessionEnd}
             onPresentationHotspot={() => {}}
+            onRendererReady={setRenderer}
+            onSceneReady={setThreeScene}
+            onCameraReady={setCamera}
+            onControlsReady={setControls}
+            onNavigationReady={setNavigationSystem}
+            onEnterpriseRigReady={setEnterpriseRig}
+            onHotspotManagerReady={setHotspotManager}
             radiationMode={radiationMode}
             scene1Assets={scene1Assets}
             scene1Loading={false}
