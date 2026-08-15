@@ -34,6 +34,7 @@ import {
   SpatialHotspotManager,
 } from '../scene/SpatialHotspotManager';
 import { Scene1AssetHandles } from '../scene/Scene1Composition';
+import { LoadProgress } from '../assets/AssetManager';
 
 interface ThreeNuclearSceneProps {
   currentZone: ZoneId;
@@ -63,6 +64,7 @@ interface ThreeNuclearSceneProps {
   scene1Assets?: Scene1AssetHandles | null;
   scene1Loading?: boolean;
   scene1LoadError?: string | null;
+  scene1Progress?: LoadProgress | null;
 }
 
 type LoadState = 'initializing' | 'loading' | 'ready' | 'error';
@@ -654,6 +656,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
   scene1Assets,
   scene1Loading,
   scene1LoadError,
+  scene1Progress,
 }) => {
   const canvasHostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -1636,8 +1639,17 @@ postProcessingRef.current?.dispose();
             <span className="scene-loading-spinner" aria-hidden="true" />
             <span className="scene-loading-copy">
               <strong>Loading Scene 1</strong>
-              <span>Streaming SMR campus, city & facilities assets...</span>
+              <span>
+                {scene1Progress
+                  ? `Streaming ${scene1Progress.currentAsset}... ${scene1Progress.loaded}/${scene1Progress.total} assets (${scene1Progress.percentage.toFixed(1)}%)`
+                  : 'Streaming SMR campus, city & facilities assets...'}
+              </span>
             </span>
+            {scene1Progress && (
+              <div className="scene-loading-progress" style={{ marginTop: 8, fontSize: '11px', color: '#88aadd', fontFamily: 'JetBrains Mono, monospace' }}>
+                {(scene1Progress.bytesLoaded / 1024 / 1024).toFixed(1)} / {(scene1Progress.bytesTotal / 1024 / 1024).toFixed(1)} MB
+              </div>
+            )}
           </div>
         </div>
       )}

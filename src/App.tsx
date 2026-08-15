@@ -38,7 +38,7 @@ const PRESENTATION_SCRIPT: PresentationStep[] = [
 ];
 
 export default function App() {
-  const [currentZone, setCurrentZone] = useState<ZoneId>('overview');
+  const [currentZone, setCurrentZone] = useState<ZoneId>('smr');
   const [renderMode, setRenderMode] = useState<RenderShaderMode>('pbr');
   const [handRigEnabled, setHandRigEnabled] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
@@ -66,6 +66,14 @@ export default function App() {
   const [scene1Assets, setScene1Assets] = useState<Scene1AssetHandles | null>(null);
   const [scene1Loading, setScene1Loading] = useState(false);
   const [scene1LoadError, setScene1LoadError] = useState<string | null>(null);
+  const [scene1Progress, setScene1Progress] = useState<{
+    total: number;
+    loaded: number;
+    currentAsset: string;
+    percentage: number;
+    bytesLoaded: number;
+    bytesTotal: number;
+  } | null>(null);
   const scene1LoadedRef = useRef(false);
 
   const [radiationMode] = useState<RadiationVisualizationMode>('none');
@@ -91,12 +99,38 @@ export default function App() {
       setLoadError(error.message);
     });
 
-    // Load only assets required for the current active scene (ThreeNuclearScene)
-    // nuclear_plant: legacy procedural nuclear plant campus (~1.4 MB)
-    // industrial_sunset: HDR environment map (~4.1 MB)
+    // Load base assets: legacy nuclear_plant (base scene for ThreeNuclearScene)
+    // and industrial_sunset HDR (environment for both legacy and Scene 1)
     manager.loadAssets(['nuclear_plant', 'industrial_sunset']).catch((err) => {
       setLoadError(err.message);
     });
+
+    // Pre-load Scene 1 assets at startup since default zone is now a Scene 1 zone
+    const loadScene1AtStartup = async () => {
+      setScene1Loading(true);
+      setScene1LoadError(null);
+      setScene1Progress(null);
+      try {
+        console.info('[App] Loading Scene 1 manifest at startup...');
+        await assetManager.loadManifest(SCENE1_ASSET_MANIFEST, SCENE1_ASSET_KEYS, (progress) => {
+          setScene1Progress(progress);
+        });
+        console.info('[App] Scene 1 manifest loaded, creating composition...');
+        const handles = await loadScene1Assets();
+        setScene1Assets(handles);
+        scene1LoadedRef.current = true;
+        console.info('[App] Scene 1 composition ready at startup');
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        console.error('[App] Scene 1 startup load failed:', err);
+        setScene1LoadError(message);
+      } finally {
+        setScene1Loading(false);
+        setScene1Progress(null);
+      }
+    };
+
+    loadScene1AtStartup();
 
     return () => {
       unsubscribeProgress();
@@ -105,43 +139,7 @@ export default function App() {
     };
   }, []);
 
-  // Scene 1 lazy loading - trigger when entering Scene 1 zones
-  const scene1Zones: ZoneId[] = ['smr', 'facilities', 'city', 'sea'];
-  useEffect(() => {
-    if (!scene1Zones.includes(currentZone)) {
-      return;
-    }
-    if (scene1LoadedRef.current) {
-      return;
-    }
-    if (scene1Loading) {
-      return;
-    }
-
-    const loadScene1 = async () => {
-      setScene1Loading(true);
-      setScene1LoadError(null);
-      try {
-        console.info('[App] Loading Scene 1 manifest...');
-        await assetManager.loadManifest(SCENE1_ASSET_MANIFEST, SCENE1_ASSET_KEYS);
-        console.info('[App] Scene 1 manifest loaded, creating composition...');
-        const handles = await loadScene1Assets();
-        setScene1Assets(handles);
-        scene1LoadedRef.current = true;
-        console.info('[App] Scene 1 composition ready');
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unknown error';
-        console.error('[App] Scene 1 load failed:', err);
-        setScene1LoadError(message);
-      } finally {
-        setScene1Loading(false);
-      }
-    };
-
-    loadScene1();
-  }, [currentZone, scene1Loading]);
-
-  // Live Nuclear Physics & Telemetry State
+// Live Nuclear Physics & Telemetry State
   const [telemetry, setTelemetry] = useState<TelemetryState>({
     thermalPowerMW: 3450.0,
     nominalThermalTargetMW: 3450.0,
@@ -306,6 +304,29 @@ export default function App() {
     assetManager.loadAssets(['nuclear_plant', 'industrial_sunset']).catch((err) => {
       setLoadError(err.message);
     });
+    // Also retry Scene 1 loading since default zone is Scene 1
+    scene1LoadedRef.current = false;
+    setScene1Assets(null);
+    setScene1LoadError(null);
+    const loadScene1 = async () => {
+      setScene1Loading(true);
+      setScene1Progress(null);
+      try {
+        await assetManager.loadManifest(SCENE1_ASSET_MANIFEST, SCENE1_ASSET_KEYS, (progress) => {
+          setScene1Progress(progress);
+        });
+        const handles = await loadScene1Assets();
+        setScene1Assets(handles);
+        scene1LoadedRef.current = true;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        setScene1LoadError(message);
+      } finally {
+        setScene1Loading(false);
+        setScene1Progress(null);
+      }
+    };
+    loadScene1();
   }, []);
 
   const handleSelectHotspot = useCallback((hotspot: Hotspot3D) => {
@@ -365,6 +386,7 @@ export default function App() {
             scene1Assets={scene1Assets}
             scene1Loading={scene1Loading}
             scene1LoadError={scene1LoadError}
+            scene1Progress={scene1Progress}
           />
 
           <HoloLensHandRig enabled={handRigEnabled} onCalibrate={() => spatialAudio.playSuccessChime()} />
