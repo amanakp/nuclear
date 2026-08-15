@@ -285,12 +285,20 @@ export function useCinematicExperience() {
       }
     }
 
+    // Handle auto-advance for 'auto' transitions
+    if (scene.transition?.nextScene && scene.interaction?.type === 'auto') {
+      const timer = setTimeout(() => {
+        advanceScene();
+      }, scene.transition.duration);
+      return () => clearTimeout(timer);
+    }
+
     return () => {
       if (scene.onExit) {
         scene.onExit(contextRef.current);
       }
     };
-  }, [currentSceneId, isLoading, loadProgress, isLastScene]);
+  }, [currentSceneId, isLoading, loadProgress, isLastScene, advanceScene]);
 
   useEffect(() => {
     if (!currentScene) return;
@@ -310,6 +318,7 @@ export function useCinematicExperience() {
     loadProgress,
     uiState,
     scene1Assets,
+    currentVisibleGroups: currentScene?.visibleGroups ?? [],
     advanceScene,
     skipScene,
     context: contextRef.current,

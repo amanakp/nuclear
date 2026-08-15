@@ -19,6 +19,7 @@ const {
     loadProgress: cinematicLoadProgress,
     uiState,
     scene1Assets,
+    currentVisibleGroups,
   } = useCinematicExperience();
 
   const [showLoading, setShowLoading] = useState(true);
@@ -184,7 +185,7 @@ const {
 
       {!showLoading && !loadError && (
         <div className="animate-fadeIn" style={{ width: '100%', height: '100%' }}>
-          <ThreeNuclearScene
+<ThreeNuclearScene
             currentZone={currentZone as ZoneId}
             onChangeZone={() => {}}
             renderMode={renderMode}
@@ -205,7 +206,8 @@ const {
             scene1Loading={false}
             scene1LoadError={null}
             scene1Progress={displayProgress}
-/>
+            scene1VisibleGroups={currentVisibleGroups}
+          />
 
           <HoloLensHandRig enabled={handRigEnabled} onCalibrate={() => spatialAudio.playSuccessChime()} />
 

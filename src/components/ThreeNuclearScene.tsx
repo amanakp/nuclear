@@ -65,6 +65,7 @@ interface ThreeNuclearSceneProps {
   scene1Loading?: boolean;
   scene1LoadError?: string | null;
   scene1Progress?: LoadProgress | null;
+  scene1VisibleGroups?: string[];
 }
 
 type LoadState = 'initializing' | 'loading' | 'ready' | 'error';
@@ -657,6 +658,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
   scene1Loading,
   scene1LoadError,
   scene1Progress,
+  scene1VisibleGroups,
 }) => {
   const canvasHostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -784,37 +786,48 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
     hotspotManagerRef.current?.updateHotspotSelection(selectedHotspotId);
   }, [selectedHotspotId]);
 
-  // Scene 1 asset mounting - add/remove Scene 1 groups based on zone and loading state
+  // Scene 1 asset mounting - add/remove Scene 1 groups based on cinematic scene visibility
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
 
-    const isScene1Zone = SCENE1_ZONES.includes(currentZone);
+    const visibleGroups = scene1VisibleGroups ?? [];
 
-    // Clean up previous Scene 1 groups if zone changed away from Scene 1
-    if (!isScene1Zone && scene1GroupsRef.current.length > 0) {
-      scene1GroupsRef.current.forEach((group) => {
-        scene.remove(group);
-        group.clear();
-      });
-      scene1GroupsRef.current = [];
-      scene1DisposedRef.current = false;
-      return;
-    }
+    // Clean up previous Scene 1 groups that are no longer visible
+    const groupsToRemove = scene1GroupsRef.current.filter((group) => {
+      const groupName = group.name;
+      return !visibleGroups.some((vg: string) => groupName.includes(vg));
+    });
 
-    // If not a Scene 1 zone, nothing to do
-    if (!isScene1Zone) return;
+    groupsToRemove.forEach((group) => {
+      scene.remove(group);
+      group.clear();
+    });
+    scene1GroupsRef.current = scene1GroupsRef.current.filter((group) =>
+      visibleGroups.some((vg: string) => group.name.includes(vg))
+    );
 
-    // If Scene 1 assets are loaded, add them to the scene
+    // If no visible groups, nothing to do
+    if (visibleGroups.length === 0) return;
+
+    // If Scene 1 assets are loaded, add visible groups to the scene
     if (scene1Assets && !scene1DisposedRef.current) {
-      // Only add if not already added
-      if (scene1GroupsRef.current.length === 0) {
-        const groupsToAdd = [scene1Assets.smr, scene1Assets.city, scene1Assets.facilities];
-        groupsToAdd.forEach((group) => {
+      const groupMap: Record<string, THREE.Group> = {
+        smr: scene1Assets.smr,
+        city: scene1Assets.city,
+        facilities: scene1Assets.facilities,
+      };
+
+      visibleGroups.forEach((groupName: string) => {
+        const group = groupMap[groupName];
+        if (group && !scene1GroupsRef.current.some((g) => g.name.includes(groupName))) {
           scene.add(group);
           scene1GroupsRef.current.push(group);
-        });
-        console.info('[ThreeNuclearScene] Scene 1 assets mounted to scene');
+        }
+      });
+
+      if (scene1GroupsRef.current.length > 0) {
+        console.info('[ThreeNuclearScene] Scene 1 groups mounted:', visibleGroups.join(', '));
       }
     }
 
@@ -827,7 +840,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
         scene1GroupsRef.current = [];
       }
     };
-  }, [currentZone, scene1Assets]);
+  }, [scene1VisibleGroups, scene1Assets]);
 
   useEffect(() => {
     const host = canvasHostRef.current;
