@@ -538,3 +538,5 @@ export function initializeAssetManager(): AssetManager {
   manager.setManifest(NUCLEAR_ASSET_MANIFEST);
   return manager;
 }
+
+initializeAssetManager();
