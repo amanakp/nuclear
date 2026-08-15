@@ -154,6 +154,7 @@ class AssetManager {
     }
 
     const assetsToLoad = keys.filter(key => allAssets[key]);
+    this.totalAssets = assetsToLoad.length;
     const sortedAssets = assetsToLoad
       .map(key => [key, allAssets[key]] as [string, AssetEntry])
       .sort((a, b) => {
@@ -204,6 +205,7 @@ class AssetManager {
     }
 
     const assetsToLoad = keys.filter(key => allAssets[key]);
+    this.totalAssets = assetsToLoad.length;
     const sortedAssets = assetsToLoad
       .map(key => [key, allAssets[key]] as [string, AssetEntry])
       .sort((a, b) => {
