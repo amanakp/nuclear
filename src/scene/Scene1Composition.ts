@@ -347,6 +347,7 @@ function createSteamSprites(anchor: THREE.Vector3, count: number = 3): SteamSpri
 }
 
 export async function loadScene1Assets(): Promise<Scene1AssetHandles> {
+  console.info(`[Scene1-DIAG] loadScene1Assets() called. AssetManager has:`, Array.from((assetManager as any).assets?.keys?.() ?? []).join(', '));
   const smrGroup = new THREE.Group();
   smrGroup.name = 'SMR_Campus';
   smrGroup.position.copy(SMR_WORLD_POS);
@@ -363,11 +364,13 @@ export async function loadScene1Assets(): Promise<Scene1AssetHandles> {
 
   // --- Load SMR Campus Components ---
   console.info('[Scene1] Loading SMR campus components...');
+  const smrLoadResults: string[] = [];
   for (const config of SMR_COMPONENT_CONFIGS) {
     try {
       const asset = assetManager.getModel(config.assetKey);
       if (!asset) {
         console.warn(`[Scene1] SMR component ${config.assetKey} not loaded in AssetManager`);
+        smrLoadResults.push(`SKIP:${config.assetKey}`);
         continue;
       }
       const instance = instantiateModel(asset.scene);
@@ -378,10 +381,13 @@ export async function loadScene1Assets(): Promise<Scene1AssetHandles> {
       smrGroup.add(instance);
       disposables.push(...extractDisposables(instance));
       console.info(`[Scene1] Loaded SMR: ${config.assetKey} (${config.role})`);
+      smrLoadResults.push(`OK:${config.assetKey}`);
     } catch (error) {
       console.error(`[Scene1] Failed to load SMR component ${config.assetKey}:`, error);
+      smrLoadResults.push(`ERR:${config.assetKey}`);
     }
   }
+  console.info(`[Scene1-DIAG] SMR load results: ${smrLoadResults.join(', ')}`);
 
   // Steam plume on exhaust stack
   const steamAnchor = new THREE.Vector3(36, 36, 30);
@@ -420,11 +426,13 @@ export async function loadScene1Assets(): Promise<Scene1AssetHandles> {
 
   // --- Load Hero Assets (City Skyscraper) ---
   console.info('[Scene1] Loading hero assets...');
+  const cityLoadResults: string[] = [];
   for (const config of HERO_ASSET_CONFIGS) {
     try {
       const asset = assetManager.getModel(config.assetKey);
       if (!asset) {
         console.warn(`[Scene1] Hero asset ${config.assetKey} not loaded`);
+        cityLoadResults.push(`SKIP:${config.assetKey}`);
         continue;
       }
       const instance = instantiateModel(asset.scene);
@@ -435,18 +443,23 @@ export async function loadScene1Assets(): Promise<Scene1AssetHandles> {
       cityGroup.add(instance);
       disposables.push(...extractDisposables(instance));
       console.info(`[Scene1] Loaded hero: ${config.assetKey} (${config.role})`);
+      cityLoadResults.push(`OK:${config.assetKey}`);
     } catch (error) {
       console.error(`[Scene1] Failed to load hero asset ${config.assetKey}:`, error);
+      cityLoadResults.push(`ERR:${config.assetKey}`);
     }
   }
+  console.info(`[Scene1-DIAG] City load results: ${cityLoadResults.join(', ')}`);
 
   // --- Load Facilities Assets ---
   console.info('[Scene1] Loading facilities assets...');
+  const facLoadResults: string[] = [];
   for (const config of FACILITY_ASSET_CONFIGS) {
     try {
       const asset = assetManager.getModel(config.assetKey);
       if (!asset) {
         console.warn(`[Scene1] Facility asset ${config.assetKey} not loaded`);
+        facLoadResults.push(`SKIP:${config.assetKey}`);
         continue;
       }
       const instance = instantiateModel(asset.scene);
@@ -457,10 +470,13 @@ export async function loadScene1Assets(): Promise<Scene1AssetHandles> {
       facilitiesGroup.add(instance);
       disposables.push(...extractDisposables(instance));
       console.info(`[Scene1] Loaded facility: ${config.assetKey} (${config.role})`);
+      facLoadResults.push(`OK:${config.assetKey}`);
     } catch (error) {
       console.error(`[Scene1] Failed to load facility asset ${config.assetKey}:`, error);
+      facLoadResults.push(`ERR:${config.assetKey}`);
     }
   }
+  console.info(`[Scene1-DIAG] Facilities load results: ${facLoadResults.join(', ')}`);
 
   const dispose = () => {
     steamTexture?.dispose();
@@ -479,6 +495,14 @@ export async function loadScene1Assets(): Promise<Scene1AssetHandles> {
 
   // Store steam sprites globally for animation
   (globalThis as any).__SCENE1_STEAM_SPRITES__ = steamSprites;
+
+  // [SCENE1-DIAG] Final summary
+  const countMeshes = (g: THREE.Group) => { let n = 0; g.traverse(c => { if (c instanceof THREE.Mesh) n++; }); return n; };
+  console.info(`[Scene1-DIAG] Final groups: smr=${countMeshes(smrGroup)} meshes, city=${countMeshes(cityGroup)} meshes, facilities=${countMeshes(facilitiesGroup)} meshes`);
+  const smrBox = new THREE.Box3().setFromObject(smrGroup);
+  const cityBox = new THREE.Box3().setFromObject(cityGroup);
+  const facBox = new THREE.Box3().setFromObject(facilitiesGroup);
+  console.info(`[Scene1-DIAG] BBoxes: smr=${JSON.stringify(smrBox.min.toArray().map(v=>+v.toFixed(1)))}→${JSON.stringify(smrBox.max.toArray().map(v=>+v.toFixed(1)))}, city=${JSON.stringify(cityBox.min.toArray().map(v=>+v.toFixed(1)))}→${JSON.stringify(cityBox.max.toArray().map(v=>+v.toFixed(1)))}, fac=${JSON.stringify(facBox.min.toArray().map(v=>+v.toFixed(1)))}→${JSON.stringify(facBox.max.toArray().map(v=>+v.toFixed(1)))}`);
 
   return { smr: smrGroup, city: cityGroup, facilities: facilitiesGroup, dispose };
 }
