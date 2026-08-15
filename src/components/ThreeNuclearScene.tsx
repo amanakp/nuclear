@@ -1017,18 +1017,52 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
         setLoadState('error');
       };
 
+      // Cinematic Scene 1 experience: the legacy nuclear plant (GLB or
+      // procedural fallback) is not part of this composition. App.tsx loads
+      // only the cinematic environment (industrial_sunset), so when the
+      // nuclear_plant asset is absent the legacy plant path must not run.
+      const legacyPlantActive = assetManager.hasAsset('nuclear_plant');
+
       // Load model via AssetManager
-      setLoadState('loading');
+      setLoadState(legacyPlantActive ? 'loading' : 'ready');
       setLoadErrorMessage(null);
-      renderer.domElement.dataset.modelSource = 'loading';
-      renderer.domElement.dataset.modelUrl = NUCLEAR_PLANT_MODEL_URL;
-      renderer.domElement.dataset.sceneReady = 'false';
-      console.info(
-        `[ThreeNuclearScene] Loading actual nuclear plant GLB: ${NUCLEAR_PLANT_MODEL_URL}`,
-      );
+      renderer.domElement.dataset.modelSource = legacyPlantActive ? 'loading' : 'scene1';
+      renderer.domElement.dataset.sceneReady = String(legacyPlantActive ? false : true);
+      if (legacyPlantActive) {
+        renderer.domElement.dataset.modelUrl = NUCLEAR_PLANT_MODEL_URL;
+        console.info(
+          `[ThreeNuclearScene] Loading actual nuclear plant GLB: ${NUCLEAR_PLANT_MODEL_URL}`,
+        );
+      }
 
       const processModel = () => {
         if (disposed) return;
+
+        // Cinematic Scene 1 composition root: keeps the navigation system
+        // wired and lets the scene1VisibleGroups effect mount the city,
+        // facilities and SMR groups. Camera starts at the bangkok_today
+        // camera preset; the orchestrator drives subsequent transitions.
+        if (!legacyPlantActive) {
+          const scene1Root = new THREE.Group();
+          scene1Root.name = 'Cinematic Scene 1 Root';
+          scene!.add(scene1Root);
+          gltfSceneRef.current = scene1Root;
+          navigationSystem.setModelRoot(scene1Root);
+          camera!.position.set(330, 115, 330);
+          camera!.fov = 38;
+          camera!.updateProjectionMatrix();
+          controls!.target.set(200, 18, 60);
+          controls!.update();
+          renderer!.domElement.dataset.modelSource = 'scene1';
+          renderer!.domElement.dataset.sceneReady = 'true';
+          renderer!.domElement.dataset.navigationMode = navigationMode;
+          try {
+            renderer!.compile(scene!, camera!);
+          } catch (error) {
+            console.warn('[ThreeNuclearScene] Shader pre-compile aborted; continuing.', error);
+          }
+          return;
+        }
 
         let modelWrapper: THREE.Group | null = null;
         try {

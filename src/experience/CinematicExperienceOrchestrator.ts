@@ -19,6 +19,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
       // Do NOT call loadAssets here — it would reset the singleton counters,
       // create a competing load, and cause the "1/1 assets" stuck loading screen.
     },
+    interaction: { type: 'auto', onComplete: () => {} },
   },
   bangkok_today: {
     id: 'bangkok_today',
@@ -32,11 +33,14 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     transition: { type: 'fly', duration: 5000, nextScene: 'energy_pressure' },
     onEnter: async (ctx) => {
       ctx.setLoading(true);
-      await ctx.assetManager.loadManifest(SCENE1_ASSET_MANIFEST, CINEMATIC_SCENES.bangkok_today.requiredAssets, (p: LoadProgress) => ctx.setLoading(true, p));
-      if (!ctx.scene1Assets) {
-        ctx.scene1Assets = await loadScene1Assets();
+      try {
+        await ctx.assetManager.loadManifest(SCENE1_ASSET_MANIFEST, CINEMATIC_SCENES.bangkok_today.requiredAssets, (p: LoadProgress) => ctx.setLoading(true, p));
+        if (!ctx.scene1Assets) {
+          ctx.scene1Assets = await loadScene1Assets();
+        }
+      } finally {
+        ctx.setLoading(false);
       }
-      ctx.setLoading(false);
     },
   },
   energy_pressure: {
@@ -214,7 +218,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
 
 export function useCinematicExperience() {
   const [currentSceneId, setCurrentSceneId] = useState<CinematicSceneId>('initialization');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [loadProgress, setLoadProgress] = useState<LoadProgress | null>(null);
   const [uiState, setUiState] = useState<{
     sceneTitle?: string;
