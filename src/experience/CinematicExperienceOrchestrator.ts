@@ -26,7 +26,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     title: 'BANGKOK TODAY',
     narration: 'Bangkok. A city of 11 million people. Growing. Demanding. Energy-hungry.',
     requiredAssets: ['city_main_skyscraper', 'facilities_ground_pavement', 'facilities_landscaping_trees', 'facilities_base_road', 'facilities_electric_pole', 'facilities_electric_wire', 'facilities_electric_generator'],
-    cameraPreset: { position: new THREE.Vector3(330, 115, 330), target: new THREE.Vector3(200, 18, 60), fov: 38 },
+    cameraPreset: { position: new THREE.Vector3(330, 115, 330), target: new THREE.Vector3(28, 65, -185), fov: 38 },
     environment: { lighting: 'day', effects: ['city_lights', 'traffic'] },
     visibleGroups: ['city', 'facilities'],
     interaction: { type: 'auto', onComplete: () => {} },
@@ -48,7 +48,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     title: 'ENERGY PRESSURE',
     narration: 'Every day, the demand grows. The grid strains. The city needs a new source.',
     requiredAssets: [],
-    cameraPreset: { position: new THREE.Vector3(330, 115, 330), target: new THREE.Vector3(200, 18, 60), fov: 38 },
+    cameraPreset: { position: new THREE.Vector3(330, 115, 330), target: new THREE.Vector3(28, 65, -185), fov: 38 },
     environment: { lighting: 'storm', effects: ['grid_strain', 'pulse_red', 'flicker_lights'] },
     visibleGroups: ['city', 'facilities'],
     interaction: { type: 'auto', onComplete: () => {} },
@@ -56,7 +56,7 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     onEnter: async (ctx) => {
       ctx.navigationSystem.transitionToPreset({
         position: new THREE.Vector3(330, 115, 330),
-        target: new THREE.Vector3(200, 18, 60),
+        target: new THREE.Vector3(28, 65, -185),
         fov: 38,
       });
     },
@@ -161,15 +161,15 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     title: 'INSIDE THE SMR',
     narration: 'Reactor core. Primary coolant. Steam generator. Turbine. Generator. Clean electricity.',
     requiredAssets: [],
-    cameraPreset: { position: new THREE.Vector3(-4, 12, -2), target: new THREE.Vector3(-10, 10.5, 0), fov: 48 },
+    cameraPreset: { position: new THREE.Vector3(-124, 12, -252), target: new THREE.Vector3(-130, 10.5, -250), fov: 48 },
     environment: { lighting: 'green', effects: ['core_pulse', 'coolant_flow', 'steam_animation', 'turbine_spin'] },
     visibleGroups: ['smr'],
     interaction: { type: 'auto', onComplete: () => {} },
     transition: { type: 'fade', duration: 3000, nextScene: 'energy_door' },
     onEnter: async (ctx) => {
       ctx.navigationSystem.transitionToPreset({
-        position: new THREE.Vector3(-4, 12, -2),
-        target: new THREE.Vector3(-10, 10.5, 0),
+        position: new THREE.Vector3(-124, 12, -252),
+        target: new THREE.Vector3(-130, 10.5, -250),
         fov: 48,
       });
     },
@@ -202,14 +202,14 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     title: 'BANGKOK TOMORROW',
     narration: 'Clean energy. Smart mobility. Connected homes. Healthy community. Sustainable industry. This is the future.',
     requiredAssets: ['city_main_skyscraper', 'facilities_ground_pavement', 'facilities_landscaping_trees', 'facilities_solar_panel_array', 'smr_solar_panel_array'],
-    cameraPreset: { position: new THREE.Vector3(330, 115, 330), target: new THREE.Vector3(200, 18, 60), fov: 38 },
+    cameraPreset: { position: new THREE.Vector3(330, 115, 330), target: new THREE.Vector3(28, 65, -185), fov: 38 },
     environment: { lighting: 'green', effects: ['green_city', 'ev_charging', 'solar_rooftops', 'canal_ferries', 'urban_parks'] },
     visibleGroups: ['city', 'facilities', 'smr'],
     interaction: { type: 'auto', onComplete: () => {} },
     onEnter: async (ctx) => {
       ctx.navigationSystem.transitionToPreset({
         position: new THREE.Vector3(330, 115, 330),
-        target: new THREE.Vector3(200, 18, 60),
+        target: new THREE.Vector3(28, 65, -185),
         fov: 38,
       });
     },

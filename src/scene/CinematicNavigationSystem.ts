@@ -92,7 +92,7 @@ export const ENTERPRISE_CAMERA_PRESETS: Record<ZoneId, LocalCameraPreset> = {
   },
   city: {
     position: new THREE.Vector3(330, 115, 330),
-    target: new THREE.Vector3(200, 18, 60),
+    target: new THREE.Vector3(28, 65, -185),
     fov: 38,
   },
   sea: {

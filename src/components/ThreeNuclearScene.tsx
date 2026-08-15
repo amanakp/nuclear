@@ -1051,7 +1051,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
           camera!.position.set(330, 115, 330);
           camera!.fov = 38;
           camera!.updateProjectionMatrix();
-          controls!.target.set(200, 18, 60);
+          controls!.target.set(28, 65, -185);
           controls!.update();
           renderer!.domElement.dataset.modelSource = 'scene1';
           renderer!.domElement.dataset.sceneReady = 'true';

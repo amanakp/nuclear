@@ -1330,7 +1330,7 @@ export function createIndustrialEnvironment(
   scene.add(group);
 
   scene.background = new THREE.Color(0x07131d);
-  scene.fog = new THREE.FogExp2(0x102733, 0.00255);
+  scene.fog = new THREE.FogExp2(0x102733, 0.0009);
 
   let environmentMap: THREE.Texture | null = null;
   if (hdrTexture) {
