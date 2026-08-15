@@ -88,9 +88,8 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     interaction: { type: 'auto', onComplete: () => {} },
     transition: { type: 'fly', duration: 10000, nextScene: 'smr_arrival' },
     onEnter: async (ctx) => {
-      if (!ctx.scene1Assets) {
-        ctx.scene1Assets = await loadScene1Assets();
-      }
+      await ctx.assetManager.loadManifest(SCENE1_ASSET_MANIFEST, CINEMATIC_SCENES.journey_to_source.requiredAssets);
+      ctx.scene1Assets = await loadScene1Assets();
       requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(10, 75, 30),
         target: new THREE.Vector3(-40, 8, -250),
@@ -116,9 +115,8 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     interaction: { type: 'click', target: 'activation_point', onComplete: () => {} },
     transition: { type: 'fade', duration: 2000, nextScene: 'activation' },
     onEnter: async (ctx) => {
-      if (!ctx.scene1Assets) {
-        ctx.scene1Assets = await loadScene1Assets();
-      }
+      await ctx.assetManager.loadManifest(SCENE1_ASSET_MANIFEST, CINEMATIC_SCENES.smr_arrival.requiredAssets);
+      ctx.scene1Assets = await loadScene1Assets();
       requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(-120, 40, -110),
         target: new THREE.Vector3(-120, 6, -250),

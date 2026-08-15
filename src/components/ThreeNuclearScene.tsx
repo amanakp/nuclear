@@ -837,7 +837,6 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
 
     groupsToRemove.forEach((group) => {
       scene.remove(group);
-      group.clear();
     });
     scene1GroupsRef.current = scene1GroupsRef.current.filter((group) =>
       visibleGroups.some((vg: string) => group.name.includes(vg))
