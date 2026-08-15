@@ -137,23 +137,29 @@ class AssetManager {
 
     if (progressCb) this.onProgress(progressCb);
 
-    this.isLoading = true;
-    this.loadedAssets = 0;
-    this.loadedBytes = 0;
-    this.totalBytes = 0;
-
     const allAssets = {
       ...this.manifest.models,
       ...this.manifest.textures,
       ...this.manifest.environments,
     };
 
+    const assetsToLoad = keys.filter(key => allAssets[key] && !this.assets.has(key));
+
+    if (assetsToLoad.length === 0 && keys.every(key => this.assets.has(key))) {
+      this.completeCallbacks.forEach(cb => cb(this.assets));
+      return this.assets;
+    }
+
+    this.isLoading = true;
+    this.loadedAssets = 0;
+    this.loadedBytes = 0;
+    this.totalBytes = 0;
+
     const missingKeys = keys.filter(key => !allAssets[key]);
     if (missingKeys.length > 0) {
       console.warn(`Assets not found in manifest: ${missingKeys.join(', ')}`);
     }
 
-    const assetsToLoad = keys.filter(key => allAssets[key]);
     this.totalAssets = assetsToLoad.length;
     const sortedAssets = assetsToLoad
       .map(key => [key, allAssets[key]] as [string, AssetEntry])
@@ -188,23 +194,29 @@ class AssetManager {
   ): Promise<Map<string, LoadedAsset>> {
     if (progressCb) this.onProgress(progressCb);
 
-    this.isLoading = true;
-    this.loadedAssets = 0;
-    this.loadedBytes = 0;
-    this.totalBytes = 0;
-
     const allAssets = {
       ...manifest.models,
       ...manifest.textures,
       ...manifest.environments,
     };
 
+    const assetsToLoad = keys.filter(key => allAssets[key] && !this.assets.has(key));
+
+    if (assetsToLoad.length === 0 && keys.every(key => this.assets.has(key))) {
+      this.completeCallbacks.forEach(cb => cb(this.assets));
+      return this.assets;
+    }
+
+    this.isLoading = true;
+    this.loadedAssets = 0;
+    this.loadedBytes = 0;
+    this.totalBytes = 0;
+
     const missingKeys = keys.filter(key => !allAssets[key]);
     if (missingKeys.length > 0) {
       console.warn(`Assets not found in provided manifest: ${missingKeys.join(', ')}`);
     }
 
-    const assetsToLoad = keys.filter(key => allAssets[key]);
     this.totalAssets = assetsToLoad.length;
     const sortedAssets = assetsToLoad
       .map(key => [key, allAssets[key]] as [string, AssetEntry])

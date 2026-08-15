@@ -10,14 +10,14 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     id: 'initialization',
     title: 'INITIALIZATION',
     narration: 'Welcome to the NUCLEUS VR Exhibition. Initializing Bangkok Green City experience...',
-    requiredAssets: ['industrial_sunset'],
+    requiredAssets: [],
     environment: { lighting: 'dawn' },
     visibleGroups: [],
     transition: { type: 'fade', duration: 3000, nextScene: 'bangkok_today' },
-    onEnter: async (ctx) => {
-      ctx.setLoading(true);
-      await ctx.assetManager.loadAssets(['industrial_sunset'], (p: LoadProgress) => ctx.setLoading(true, p));
-      ctx.setLoading(false);
+    onEnter: (_ctx) => {
+      // Environment is already loaded by App.tsx before ThreeNuclearScene mounts.
+      // Do NOT call loadAssets here — it would reset the singleton counters,
+      // create a competing load, and cause the "1/1 assets" stuck loading screen.
     },
   },
   bangkok_today: {
@@ -31,10 +31,12 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     interaction: { type: 'auto', onComplete: () => {} },
     transition: { type: 'fly', duration: 5000, nextScene: 'energy_pressure' },
     onEnter: async (ctx) => {
+      ctx.setLoading(true);
       await ctx.assetManager.loadManifest(SCENE1_ASSET_MANIFEST, CINEMATIC_SCENES.bangkok_today.requiredAssets, (p: LoadProgress) => ctx.setLoading(true, p));
       if (!ctx.scene1Assets) {
         ctx.scene1Assets = await loadScene1Assets();
       }
+      ctx.setLoading(false);
     },
   },
   energy_pressure: {
@@ -276,16 +278,19 @@ export function useCinematicExperience() {
       onSkip: skipScene,
     });
 
-    if (scene.onEnter) {
-      const result = scene.onEnter(contextRef.current);
-      if (result instanceof Promise) {
-        result.catch((err: Error) => {
-          console.error(`Scene ${currentSceneId} onEnter error:`, err);
-        });
+    const runOnEnter = async () => {
+      if (scene.onEnter) {
+        await scene.onEnter(contextRef.current);
       }
-    }
+      if (contextRef.current.scene1Assets) {
+        setScene1Assets(contextRef.current.scene1Assets);
+      }
+    };
 
-    // Handle auto-advance for 'auto' transitions
+    runOnEnter().catch((err: Error) => {
+      console.error(`Scene ${currentSceneId} onEnter error:`, err);
+    });
+
     if (scene.transition?.nextScene && scene.interaction?.type === 'auto') {
       const timer = setTimeout(() => {
         advanceScene();
@@ -298,7 +303,14 @@ export function useCinematicExperience() {
         scene.onExit(contextRef.current);
       }
     };
-  }, [currentSceneId, isLoading, loadProgress, isLastScene, advanceScene]);
+  }, [currentSceneId, isLastScene, advanceScene]);
+
+  useEffect(() => {
+    setUiState(prev => ({
+      ...prev,
+      progress: isLoading ? loadProgress : null,
+    }));
+  }, [isLoading, loadProgress]);
 
   useEffect(() => {
     if (!currentScene) return;

@@ -75,7 +75,7 @@ const {
       setLoadError(error.message);
     });
 
-    manager.loadAssets(['nuclear_plant', 'industrial_sunset']).catch((err) => {
+    manager.loadAssets(['industrial_sunset']).catch((err) => {
       setLoadError(err.message);
     });
 
@@ -138,7 +138,7 @@ const {
   const handleRetryLoad = useCallback(() => {
     setLoadError(null);
     setShowLoading(true);
-    assetManager.loadAssets(['nuclear_plant', 'industrial_sunset']).catch((err) => {
+    assetManager.loadAssets(['industrial_sunset']).catch((err) => {
       setLoadError(err.message);
     });
   }, []);
