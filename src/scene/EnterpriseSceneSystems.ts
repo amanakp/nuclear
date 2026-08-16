@@ -1330,7 +1330,7 @@ export function createIndustrialEnvironment(
   scene.add(group);
 
   scene.background = new THREE.Color(0x07131d);
-  scene.fog = new THREE.FogExp2(0x102733, 0.0009);
+  scene.fog = new THREE.FogExp2(0x102733, 0.0005);
 
   let environmentMap: THREE.Texture | null = null;
   if (hdrTexture) {
@@ -1393,11 +1393,11 @@ export function createEnterpriseLighting(
   const shadowSize = desktopShadowSize;
   sunlight.shadow.mapSize.set(shadowSize, shadowSize);
   sunlight.shadow.camera.near = 18;
-  sunlight.shadow.camera.far = 360;
-  sunlight.shadow.camera.left = -145;
-  sunlight.shadow.camera.right = 145;
-  sunlight.shadow.camera.top = 145;
-  sunlight.shadow.camera.bottom = -145;
+  sunlight.shadow.camera.far = 900;
+  sunlight.shadow.camera.left = -400;
+  sunlight.shadow.camera.right = 400;
+  sunlight.shadow.camera.top = 400;
+  sunlight.shadow.camera.bottom = -400;
   sunlight.shadow.bias = -0.00018;
   sunlight.shadow.normalBias = 0.045;
   sunlight.shadow.radius = 3.2;

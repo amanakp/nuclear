@@ -304,9 +304,76 @@ function instantiateModel(gltf: THREE.Group): THREE.Group {
     if (child instanceof THREE.Mesh) {
       child.castShadow = true;
       child.receiveShadow = true;
+      child.frustumCulled = false;
     }
   });
   return instance;
+}
+
+/**
+ * Normalize materials on Scene 1 imported GLB meshes to prevent
+ * shader compilation failures (Shader Error 0, 1282, useProgram).
+ * Fixes properties that GLTFLoader may produce but WebGL cannot compile.
+ */
+export function configureScene1Materials(
+  root: THREE.Object3D,
+  renderer: THREE.WebGLRenderer,
+): void {
+  const anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const configured = new Set<THREE.Material>();
+
+  root.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return;
+
+    const materials = Array.isArray(child.material) ? child.material : [child.material];
+    materials.forEach((material) => {
+      if (configured.has(material)) return;
+      configured.add(material);
+
+      if (material instanceof THREE.MeshStandardMaterial) {
+        // Clamp extreme emissive values that blow out under PBR lighting
+        if (material.emissiveIntensity > 3.0) {
+          material.emissiveIntensity = 1.5;
+        }
+
+        // Ensure metalness/roughness are in valid range
+        material.metalness = THREE.MathUtils.clamp(material.metalness, 0, 1);
+        material.roughness = THREE.MathUtils.clamp(material.roughness, 0.05, 1);
+
+        // Fix transparent + opacity conflicts
+        if (material.transparent && material.opacity >= 1.0) {
+          material.opacity = 0.95;
+        }
+        if (!material.transparent && material.opacity < 1.0) {
+          material.transparent = true;
+        }
+
+        // Set depthWrite based on transparency
+        material.depthWrite = !material.transparent;
+
+        // Ensure side is valid
+        if (material.side !== THREE.FrontSide && material.side !== THREE.BackSide && material.side !== THREE.DoubleSide) {
+          material.side = THREE.FrontSide;
+        }
+
+        // Fix normal scale if present
+        if (material.normalMap && material.normalScale) {
+          const ns = material.normalScale.length();
+          if (ns > 5 || ns < 0) {
+            material.normalScale.set(1, 1);
+          }
+        }
+
+        // Configure texture anisotropy
+        const textures = [material.map, material.normalMap, material.roughnessMap, material.metalnessMap];
+        textures.forEach((tex) => {
+          if (tex) tex.anisotropy = Math.max(tex.anisotropy, anisotropy);
+        });
+
+        material.needsUpdate = true;
+      }
+    });
+  });
 }
 
 interface SteamSpritesResult {

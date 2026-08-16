@@ -33,7 +33,7 @@ import {
   createSpatialHotspotManager,
   SpatialHotspotManager,
 } from '../scene/SpatialHotspotManager';
-import { Scene1AssetHandles } from '../scene/Scene1Composition';
+import { Scene1AssetHandles, configureScene1Materials } from '../scene/Scene1Composition';
 import { LoadProgress } from '../assets/AssetManager';
 
 interface ThreeNuclearSceneProps {
@@ -708,6 +708,7 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
   // Scene 1 refs
   const scene1GroupsRef = useRef<THREE.Group[]>([]);
   const scene1DisposedRef = useRef(false);
+  const scene1GroundRef = useRef<THREE.Mesh | null>(null);
 
   const [loadState, setLoadState] = useState<LoadState>('initializing');
   const [loadErrorMessage, setLoadErrorMessage] = useState<string | null>(null);
@@ -829,26 +830,56 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
       facilities: scene1Assets.facilities,
     };
 
+    // Case-insensitive group name matching - group names may be
+    // 'SMR_Campus' / 'Bangkok_City' / 'Green_Facilities' but
+    // visibleGroups uses lowercase 'smr' / 'city' / 'facilities'.
+    const groupMatchesVisible = (group: THREE.Group, targetGroup: string): boolean => {
+      const name = group.name.toLowerCase();
+      return name.includes(targetGroup.toLowerCase());
+    };
+
+    const groupMatchesAnyVisible = (group: THREE.Group, groups: string[]): boolean => {
+      return groups.some(g => groupMatchesVisible(group, g));
+    };
+
     // Remove groups that are no longer visible
     scene1GroupsRef.current.forEach((group) => {
-      const shouldStay = visibleGroups.some((vg: string) => group.name.includes(vg));
-      if (!shouldStay) {
+      if (!groupMatchesAnyVisible(group, visibleGroups)) {
         scene.remove(group);
       }
     });
     scene1GroupsRef.current = scene1GroupsRef.current.filter((group) =>
-      visibleGroups.some((vg: string) => group.name.includes(vg))
+      groupMatchesAnyVisible(group, visibleGroups)
     );
 
     // Add visible groups that are not yet in the scene
     visibleGroups.forEach((groupName: string) => {
       const group = groupMap[groupName];
-      if (group && !scene1GroupsRef.current.some((g) => g.name.includes(groupName))) {
+      if (group && !scene1GroupsRef.current.some((g) => groupMatchesVisible(g, groupName))) {
         scene.add(group);
         scene1GroupsRef.current.push(group);
         console.info(`[SCENE1-DIAG] Mounted group "${groupName}" into scene`);
       }
     });
+
+    // Add Scene 1 ground plane if not present
+    if (!scene1GroundRef.current && scene1GroupsRef.current.length > 0) {
+      const groundSize = 1200;
+      const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize);
+      const groundMat = new THREE.MeshStandardMaterial({
+        color: 0x1a2a1e,
+        roughness: 0.95,
+        metalness: 0.0,
+        envMapIntensity: 0.3,
+      });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -0.1;
+      ground.name = 'Scene1 Ground Plane';
+      ground.receiveShadow = true;
+      scene.add(ground);
+      scene1GroundRef.current = ground;
+    }
 
     if (scene1GroupsRef.current.length > 0) {
       let totalMeshes = 0;
@@ -856,6 +887,18 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
         g.traverse(c => { if (c instanceof THREE.Mesh) totalMeshes++; });
       });
       console.info(`[SCENE1-DIAG] Post-mount: ${scene1GroupsRef.current.length} groups, ${totalMeshes} total meshes in scene`);
+
+      // Normalize materials on Scene 1 assets to prevent shader compilation failures
+      scene1GroupsRef.current.forEach(group => {
+        configureScene1Materials(group, rendererRef.current!);
+      });
+
+      // Pre-compile shaders for newly mounted Scene 1 geometry
+      try {
+        rendererRef.current?.compile(sceneRef.current!, cameraRef.current!);
+      } catch (error) {
+        console.warn('[SCENE1-DIAG] Shader pre-compile after mount failed; continuing.', error);
+      }
     }
   }, [scene1VisibleGroups, scene1Assets]);
 
@@ -1565,6 +1608,11 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
         if (scene1Assets && !scene1DisposedRef.current) {
           scene1Assets.dispose();
           scene1DisposedRef.current = true;
+        }
+        if (scene1GroundRef.current) {
+          scene1GroundRef.current.geometry.dispose();
+          (scene1GroundRef.current.material as THREE.Material).dispose();
+          scene1GroundRef.current = null;
         }
         scene1GroupsRef.current = [];
 

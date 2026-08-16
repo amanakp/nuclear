@@ -4,6 +4,7 @@ import path from 'path';
 const SRC_ROOT = path.resolve('source-assets/models/scene1');
 const PUBLIC_ROOT = path.resolve('public');
 const DEST_ROOT = path.resolve('dist/scene1');
+const DEV_ROOT = path.resolve('public/scene1');
 
 const FILES_TO_COPY = [
   // SMR models
@@ -44,19 +45,29 @@ function copyDir(srcDir, destDir, filter) {
   }
 }
 
+function copyFilesToRoot(destRoot) {
+  for (const item of FILES_TO_COPY) {
+    const dest = item.dest.replace(DEST_ROOT, destRoot);
+    if (fs.statSync(item.src).isDirectory()) {
+      copyDir(item.src, dest, item.filter);
+    } else {
+      copyFile(item.src, dest);
+    }
+  }
+}
+
 console.log('Building Scene 1 assets...');
 
 // Clean destination
 if (fs.existsSync(DEST_ROOT)) {
   fs.rmSync(DEST_ROOT, { recursive: true, force: true });
 }
+copyFilesToRoot(DEST_ROOT);
 
-for (const item of FILES_TO_COPY) {
-  if (fs.statSync(item.src).isDirectory()) {
-    copyDir(item.src, item.dest, item.filter);
-  } else {
-    copyFile(item.src, item.dest);
-  }
+console.log('Copying Scene 1 assets to public/scene1/ for dev server...');
+if (fs.existsSync(DEV_ROOT)) {
+  fs.rmSync(DEV_ROOT, { recursive: true, force: true });
 }
+copyFilesToRoot(DEV_ROOT);
 
-console.log('Scene 1 assets built successfully.');
+console.log('Scene 1 assets built successfully (dist + public).');
