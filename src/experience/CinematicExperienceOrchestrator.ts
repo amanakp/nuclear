@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
 import { assetManager, LoadProgress } from '../assets/AssetManager';
 import { CinematicSceneId, CinematicSceneConfig, CinematicContext } from './CinematicExperienceTypes';
-import { SCENE1_ASSET_MANIFEST } from '../data/scene1Manifest';
+import { SCENE1_ASSET_MANIFEST, SCENE1_ASSET_KEYS } from '../data/scene1Manifest';
 import { loadScene1Assets } from '../scene/Scene1Composition';
 
 const requireNavigation = (ctx: CinematicContext) => {
@@ -45,7 +45,9 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     onEnter: async (ctx) => {
       ctx.setLoading(true);
       try {
-        await ctx.assetManager.loadManifest(SCENE1_ASSET_MANIFEST, CINEMATIC_SCENES.bangkok_today.requiredAssets, (p: LoadProgress) => ctx.setLoading(true, p));
+        // Load ALL scene1 assets upfront (city + facilities + SMR) so that
+        // loadScene1Assets() can instantiate every group on its first call.
+        await ctx.assetManager.loadManifest(SCENE1_ASSET_MANIFEST, SCENE1_ASSET_KEYS, (p: LoadProgress) => ctx.setLoading(true, p));
         if (!ctx.scene1Assets) {
           ctx.scene1Assets = await loadScene1Assets();
         }
@@ -88,8 +90,6 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     interaction: { type: 'auto', onComplete: () => {} },
     transition: { type: 'fly', duration: 10000, nextScene: 'smr_arrival' },
     onEnter: async (ctx) => {
-      await ctx.assetManager.loadManifest(SCENE1_ASSET_MANIFEST, CINEMATIC_SCENES.journey_to_source.requiredAssets);
-      ctx.scene1Assets = await loadScene1Assets();
       requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(10, 75, 30),
         target: new THREE.Vector3(-40, 8, -250),
@@ -115,8 +115,6 @@ const CINEMATIC_SCENES: Record<CinematicSceneId, CinematicSceneConfig> = {
     interaction: { type: 'click', target: 'activation_point', onComplete: () => {} },
     transition: { type: 'fade', duration: 2000, nextScene: 'activation' },
     onEnter: async (ctx) => {
-      await ctx.assetManager.loadManifest(SCENE1_ASSET_MANIFEST, CINEMATIC_SCENES.smr_arrival.requiredAssets);
-      ctx.scene1Assets = await loadScene1Assets();
       requireNavigation(ctx).transitionToPreset({
         position: new THREE.Vector3(-120, 40, -110),
         target: new THREE.Vector3(-120, 6, -250),
@@ -267,6 +265,7 @@ export function useCinematicExperience() {
 
   const currentScene = CINEMATIC_SCENES[currentSceneId];
   const isLastScene = currentSceneId === 'bangkok_tomorrow';
+  const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const advanceScene = useCallback(() => {
     if (currentScene?.transition?.nextScene) {
@@ -298,20 +297,23 @@ export function useCinematicExperience() {
       if (contextRef.current.scene1Assets) {
         setScene1Assets(contextRef.current.scene1Assets);
       }
+      // Start auto-transition ONLY after onEnter completes so scene1Assets is available
+      if (scene.transition?.nextScene && scene.interaction?.type === 'auto') {
+        autoAdvanceTimerRef.current = setTimeout(() => {
+          advanceScene();
+        }, scene.transition.duration);
+      }
     };
 
     runOnEnter().catch((err: Error) => {
       console.error(`Scene ${currentSceneId} onEnter error:`, err);
     });
 
-    if (scene.transition?.nextScene && scene.interaction?.type === 'auto') {
-      const timer = setTimeout(() => {
-        advanceScene();
-      }, scene.transition.duration);
-      return () => clearTimeout(timer);
-    }
-
     return () => {
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
       if (scene.onExit) {
         scene.onExit(contextRef.current);
       }

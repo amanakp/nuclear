@@ -807,102 +807,56 @@ export const ThreeNuclearScene: React.FC<ThreeNuclearSceneProps> = ({
 
     const visibleGroups = scene1VisibleGroups ?? [];
 
-    // [SCENE1-DIAG] Log mount effect state
-    console.info('[SCENE1-DIAG] Mount effect fired', {
-      visibleGroups,
-      scene1AssetsExists: !!scene1Assets,
-      scene1Disposed: scene1DisposedRef.current,
-      currentGroupsInScene: scene1GroupsRef.current.map(g => g.name),
-    });
     if (scene1Assets) {
       (['smr', 'city', 'facilities'] as const).forEach(key => {
         const group = scene1Assets[key];
         if (group) {
           let meshCount = 0;
-          let totalVerts = 0;
-          group.traverse((c: THREE.Object3D) => { if (c instanceof THREE.Mesh) { meshCount++; totalVerts += c.geometry?.attributes?.position?.count || 0; }});
-          const box = new THREE.Box3().setFromObject(group);
-          console.info(`[SCENE1-DIAG] Group "${key}": meshes=${meshCount}, verts=${totalVerts}, bbox=${JSON.stringify({min: box.min.toArray().map(v=>+v.toFixed(1)), max: box.max.toArray().map(v=>+v.toFixed(1))})}, visible=${group.visible}, children=${group.children.length}`);
+          group.traverse((c: THREE.Object3D) => { if (c instanceof THREE.Mesh) meshCount++; });
+          console.info(`[SCENE1-DIAG] Group "${key}": meshes=${meshCount}, children=${group.children.length}`);
         } else {
           console.warn(`[SCENE1-DIAG] Group "${key}" is UNDEFINED in scene1Assets`);
         }
       });
     }
 
-    // Clean up previous Scene 1 groups that are no longer visible
-    const groupsToRemove = scene1GroupsRef.current.filter((group) => {
-      const groupName = group.name;
-      return !visibleGroups.some((vg: string) => groupName.includes(vg));
-    });
+    if (!scene1Assets || scene1DisposedRef.current) return;
+    if (visibleGroups.length === 0) return;
 
-    groupsToRemove.forEach((group) => {
-      scene.remove(group);
+    const groupMap: Record<string, THREE.Group> = {
+      smr: scene1Assets.smr,
+      city: scene1Assets.city,
+      facilities: scene1Assets.facilities,
+    };
+
+    // Remove groups that are no longer visible
+    scene1GroupsRef.current.forEach((group) => {
+      const shouldStay = visibleGroups.some((vg: string) => group.name.includes(vg));
+      if (!shouldStay) {
+        scene.remove(group);
+      }
     });
     scene1GroupsRef.current = scene1GroupsRef.current.filter((group) =>
       visibleGroups.some((vg: string) => group.name.includes(vg))
     );
 
-    // If no visible groups, nothing to do
-    if (visibleGroups.length === 0) return;
+    // Add visible groups that are not yet in the scene
+    visibleGroups.forEach((groupName: string) => {
+      const group = groupMap[groupName];
+      if (group && !scene1GroupsRef.current.some((g) => g.name.includes(groupName))) {
+        scene.add(group);
+        scene1GroupsRef.current.push(group);
+        console.info(`[SCENE1-DIAG] Mounted group "${groupName}" into scene`);
+      }
+    });
 
-    // If Scene 1 assets are loaded, add visible groups to the scene
-    if (scene1Assets && !scene1DisposedRef.current) {
-      const groupMap: Record<string, THREE.Group> = {
-        smr: scene1Assets.smr,
-        city: scene1Assets.city,
-        facilities: scene1Assets.facilities,
-      };
-
-      visibleGroups.forEach((groupName: string) => {
-        const group = groupMap[groupName];
-        if (group && !scene1GroupsRef.current.some((g) => g.name.includes(groupName))) {
-          scene.add(group);
-          scene1GroupsRef.current.push(group);
-        }
+    if (scene1GroupsRef.current.length > 0) {
+      let totalMeshes = 0;
+      scene1GroupsRef.current.forEach(g => {
+        g.traverse(c => { if (c instanceof THREE.Mesh) totalMeshes++; });
       });
-
-      if (scene1GroupsRef.current.length > 0) {
-        console.info('[ThreeNuclearScene] Scene 1 groups mounted:', visibleGroups.join(', '));
-        // [SCENE1-DIAG] Log scene graph state after mount
-        let totalMeshes = 0;
-        scene1GroupsRef.current.forEach(g => {
-          g.traverse(c => { if (c instanceof THREE.Mesh) totalMeshes++; });
-        });
-        console.info(`[SCENE1-DIAG] Post-mount: ${scene1GroupsRef.current.length} groups, ${totalMeshes} total meshes in scene`);
-        // [SCENE1-DIAG] Add temporary bounding-box helpers for visibility diagnosis
-        scene1GroupsRef.current.forEach(g => {
-          const existing = g.children.find(c => c.name === '_scene1_diag_box');
-          if (existing) g.remove(existing);
-          const box = new THREE.Box3().setFromObject(g);
-          if (box.max.x > box.min.x) {
-            const helper = new THREE.Box3Helper(box, 0x00ff00);
-            helper.name = '_scene1_diag_box';
-            g.add(helper);
-          }
-          // [SCENE1-DIAG] Check material visibility on first mesh
-          let checked = 0;
-          g.traverse(c => {
-            if (c instanceof THREE.Mesh && checked < 3) {
-              checked++;
-              const mats = Array.isArray(c.material) ? c.material : [c.material];
-              mats.forEach((m, i) => {
-                console.info(`[SCENE1-DIAG] Mesh "${c.name}" mat[${i}]: type=${m.type}, visible=${c.visible}, layers=${c.layers.mask}, frustumCulled=${c.frustumCulled}, opacity=${m.opacity}, transparent=${m.transparent}, side=${m.side}, depthWrite=${m.depthWrite}, color=${m.color?.getStyle()}`);
-              });
-            }
-          });
-        });
-      }
+      console.info(`[SCENE1-DIAG] Post-mount: ${scene1GroupsRef.current.length} groups, ${totalMeshes} total meshes in scene`);
     }
-
-    // Cleanup function
-    return () => {
-      if (scene1GroupsRef.current.length > 0) {
-        scene1GroupsRef.current.forEach((group) => {
-          scene.remove(group);
-        });
-        scene1GroupsRef.current = [];
-      }
-    };
   }, [scene1VisibleGroups, scene1Assets]);
 
   useEffect(() => {
