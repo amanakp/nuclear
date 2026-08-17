@@ -151,7 +151,7 @@ export const SCENE1_ASSET_MANIFEST: AssetManifest = {
       metadata: { description: 'Landscaping trees for campus', category: 'facilities', role: 'trees' },
     },
     facilities_solar_panel_array: {
-      path: '/scene1/models/scene1/Facilities/SolarPanelArray_LOD0.glb',
+      path: '/scene1/models/scene1/SMR/SMR_SolarPanelArray_LOD0.glb',
       type: 'model',
       priority: 'normal',
       metadata: { description: 'Solar panel array for green energy facilities', category: 'facilities', role: 'solar' },

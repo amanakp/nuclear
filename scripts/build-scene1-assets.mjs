@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 
 const SRC_ROOT = path.resolve('source-assets/models/scene1');
 const PUBLIC_ROOT = path.resolve('public');
@@ -18,6 +19,26 @@ const FILES_TO_COPY = [
   // Draco files
   { src: path.join(PUBLIC_ROOT, 'draco'), dest: path.join(DEST_ROOT, 'draco'), filter: (f) => f.endsWith('.js') || f.endsWith('.wasm') },
 ];
+
+function compressGLB(src, dest) {
+  const destDir = path.dirname(dest);
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+  const inputSize = fs.statSync(src).size;
+  try {
+    execSync(
+      `npx gltf-transform draco "${src}" "${dest}"`,
+      { stdio: 'pipe', timeout: 120000 }
+    );
+    const outputSize = fs.statSync(dest).size;
+    const ratio = ((1 - outputSize / inputSize) * 100).toFixed(1);
+    console.log(`Draco: ${path.relative(process.cwd(), src)} -> ${path.relative(process.cwd(), dest)} (${ratio}% reduction, ${inputSize} -> ${outputSize})`);
+  } catch (err) {
+    console.warn(`Draco compress failed for ${path.basename(src)}, copying uncompressed: ${err.message}`);
+    fs.copyFileSync(src, dest);
+  }
+}
 
 function copyFile(src, dest) {
   const destDir = path.dirname(dest);
@@ -40,7 +61,11 @@ function copyDir(srcDir, destDir, filter) {
     if (stat.isDirectory()) {
       copyDir(srcPath, path.join(destDir, file), filter);
     } else if (!filter || filter(file)) {
-      copyFile(srcPath, path.join(destDir, file));
+      if (file.endsWith('.glb')) {
+        compressGLB(srcPath, path.join(destDir, file));
+      } else {
+        copyFile(srcPath, path.join(destDir, file));
+      }
     }
   }
 }
@@ -51,12 +76,16 @@ function copyFilesToRoot(destRoot) {
     if (fs.statSync(item.src).isDirectory()) {
       copyDir(item.src, dest, item.filter);
     } else {
-      copyFile(item.src, dest);
+      if (item.src.endsWith('.glb')) {
+        compressGLB(item.src, dest);
+      } else {
+        copyFile(item.src, dest);
+      }
     }
   }
 }
 
-console.log('Building Scene 1 assets...');
+console.log('Building Scene 1 assets (with Draco compression)...');
 
 // Clean destination
 if (fs.existsSync(DEST_ROOT)) {
@@ -70,4 +99,26 @@ if (fs.existsSync(DEV_ROOT)) {
 }
 copyFilesToRoot(DEV_ROOT);
 
-console.log('Scene 1 assets built successfully (dist + public).');
+// Summary
+console.log('\n=== Asset size summary ===');
+function walkGLBs(dir, results = []) {
+  if (!fs.existsSync(dir)) return results;
+  for (const f of fs.readdirSync(dir)) {
+    const fp = path.join(dir, f);
+    if (fs.statSync(fp).isDirectory()) walkGLBs(fp, results);
+    else if (f.endsWith('.glb')) results.push({ path: fp, size: fs.statSync(fp).size });
+  }
+  return results;
+}
+
+const distGLBs = walkGLBs(path.join(DEST_ROOT, 'models'));
+let totalBytes = 0;
+for (const g of distGLBs) {
+  totalBytes += g.size;
+}
+console.log(`Dist GLBs: ${distGLBs.length} files, ${(totalBytes / 1024 / 1024).toFixed(1)} MB total`);
+for (const g of distGLBs.sort((a, b) => b.size - a.size).slice(0, 5)) {
+  console.log(`  ${path.relative(DEST_ROOT, g.path)}: ${(g.size / 1024 / 1024).toFixed(1)} MB`);
+}
+
+console.log('\nScene 1 assets built successfully (dist + public).');

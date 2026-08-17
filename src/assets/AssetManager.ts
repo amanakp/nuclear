@@ -38,6 +38,34 @@ type ProgressCallback = (progress: LoadProgress) => void;
 type CompleteCallback = (assets: Map<string, LoadedAsset>) => void;
 type ErrorCallback = (error: Error, assetKey: string) => void;
 
+const CONCURRENT_LOAD_LIMIT = 4;
+
+async function batchLoad<T>(
+  items: T[],
+  loader: (item: T) => Promise<LoadedAsset>,
+  limit: number,
+): Promise<PromiseSettledResult<LoadedAsset>[]> {
+  const results: PromiseSettledResult<LoadedAsset>[] = [];
+  let index = 0;
+
+  async function next(): Promise<void> {
+    while (index < items.length) {
+      const i = index++;
+      const item = items[i];
+      try {
+        const result = await loader(item);
+        results[i] = { status: 'fulfilled', value: result };
+      } catch (reason) {
+        results[i] = { status: 'rejected', reason };
+      }
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(limit, items.length) }, () => next());
+  await Promise.all(workers);
+  return results;
+}
+
 class AssetManager {
   private static instance: AssetManager;
   private loader: GLTFLoader;
@@ -111,8 +139,11 @@ class AssetManager {
       return priorityOrder[a[1].priority] - priorityOrder[b[1].priority];
     });
 
-    const loadPromises = sortedAssets.map(([key, entry]) => this.loadAsset(key, entry));
-    const results = await Promise.allSettled(loadPromises);
+    const results = await batchLoad(
+      sortedAssets,
+      ([key, entry]) => this.loadAsset(key, entry),
+      CONCURRENT_LOAD_LIMIT,
+    );
 
     results.forEach((result, index) => {
       const [key] = sortedAssets[index];
@@ -168,8 +199,11 @@ class AssetManager {
         return priorityOrder[a[1].priority] - priorityOrder[b[1].priority];
       });
 
-    const loadPromises = sortedAssets.map(([key, entry]) => this.loadAsset(key, entry));
-    const results = await Promise.allSettled(loadPromises);
+    const results = await batchLoad(
+      sortedAssets,
+      ([key, entry]) => this.loadAsset(key, entry),
+      CONCURRENT_LOAD_LIMIT,
+    );
 
     results.forEach((result, index) => {
       const [key] = sortedAssets[index];
@@ -225,8 +259,11 @@ class AssetManager {
         return priorityOrder[a[1].priority] - priorityOrder[b[1].priority];
       });
 
-    const loadPromises = sortedAssets.map(([key, entry]) => this.loadAsset(key, entry));
-    const results = await Promise.allSettled(loadPromises);
+    const results = await batchLoad(
+      sortedAssets,
+      ([key, entry]) => this.loadAsset(key, entry),
+      CONCURRENT_LOAD_LIMIT,
+    );
 
     results.forEach((result, index) => {
       const [key] = sortedAssets[index];
